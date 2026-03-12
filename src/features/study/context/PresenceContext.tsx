@@ -1,7 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback, useRef } from 'react';
-import { db, firestore } from '@/lib/firebase';
+import { db, firestore, auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { ref, onValue, set, onDisconnect, serverTimestamp, increment, update, remove, query, limitToLast } from 'firebase/database';
 import {
     collection,
@@ -67,6 +68,7 @@ interface PresenceContextType {
     getUserFrame: (username: string) => string | undefined;
     userRoles: Record<string, string>;
     isMod: (username: string) => boolean;
+    isFirebaseAuthReady: boolean;
 }
 
 const PresenceContext = createContext<PresenceContextType | undefined>(undefined);
@@ -95,6 +97,14 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
     const unsavedMinutesRef = useRef(0);
     const { toast } = useToast();
     const [presenceInitialized, setPresenceInitialized] = useState(false);
+    const [isFirebaseAuthReady, setIsFirebaseAuthReady] = useState(false);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setIsFirebaseAuthReady(!!user);
+        });
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('liorea-username');
@@ -294,6 +304,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
     // Ideally we only fetch profiles of online users, but for now we'll listen to the collection to get updates.
     const [firestoreProfiles, setFirestoreProfiles] = useState<Map<string, any>>(new Map());
     useEffect(() => {
+        if (!isFirebaseAuthReady) return;
         const q = queryFirestore(collection(firestore, 'users'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const map = new Map<string, any>();
@@ -322,6 +333,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
     }, [currentDate]);
 
     useEffect(() => {
+        if (!isFirebaseAuthReady) return;
         // Query depends on 'currentDate' so it resets exactly when day flips
         const q = queryFirestore(
             collection(firestore, 'daily_stats'),
@@ -350,6 +362,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
 
     // 1b. Weekly Leaderboard (Last 7 days aggregation)
     useEffect(() => {
+        if (!isFirebaseAuthReady) return;
         const getDateDaysAgo = (days: number) => {
             const date = new Date();
             date.setDate(date.getDate() - days);
@@ -416,6 +429,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
 
     // 1c. All-Time Leaderboard (All historical data aggregation)
     useEffect(() => {
+        if (!isFirebaseAuthReady) return;
         const q = queryFirestore(
             collection(firestore, 'daily_stats'),
             orderBy('date', 'desc'),
@@ -477,6 +491,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
             setStudyUsers([]);
             return;
         }
+        if (joinedRoomId !== 'public' && !isFirebaseAuthReady) return;
 
         let unsubscribe: any = () => { };
         let animationFrameId: number;
@@ -713,6 +728,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
     // 5. Initialize/Maintain Study Session
     useEffect(() => {
         if (!joinedRoomId || !username) return;
+        if (joinedRoomId !== 'public' && !isFirebaseAuthReady) return;
 
         let rdbRef: any;
         let firestoreHeartbeatInterval: NodeJS.Timeout;

@@ -55,7 +55,7 @@ interface ChatContextType {
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider = ({ children, roomId = "public" }: { children: ReactNode, roomId?: string }) => {
-    const { username, userImage } = usePresence();
+    const { username, userImage, isFirebaseAuthReady } = usePresence();
 
     const isPublic = roomId === 'public';
     // Use legacy logic for public room to restore data
@@ -71,6 +71,8 @@ export const ChatProvider = ({ children, roomId = "public" }: { children: ReactN
 
     // 1. LIVE LISTENER (Pure Firestore)
     useEffect(() => {
+        if (!isFirebaseAuthReady) return;
+
         const collectionPath = isPublic ? 'chats' : `rooms/${roomId}/chats`;
         console.log(`[ChatDebug] Initializing pure Firestore chat for room: ${roomId}`);
 
@@ -144,7 +146,7 @@ export const ChatProvider = ({ children, roomId = "public" }: { children: ReactN
         });
 
         return () => unsubscribe();
-    }, [roomId, isPublic, effectiveRoomId, username]);
+    }, [roomId, isPublic, effectiveRoomId, username, isFirebaseAuthReady]);
 
     // 3. SEND MESSAGE
     const sendMessage = useCallback(async (message: string, image_url?: string, replyTo?: ChatMessage['replyTo']) => {
