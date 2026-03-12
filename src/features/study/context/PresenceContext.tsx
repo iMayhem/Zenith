@@ -890,8 +890,8 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
         selectedTimeframe, setSelectedTimeframe,
         isStudying, joinSession, leaveSession, updateStatusMessage,
         getUserImage, getUserFrame,
-        userRoles, isMod, joinedRoomId
-    }), [username, userImage, setUsername, setUserImage, studyUsers, leaderboardUsers, communityUsers, weeklyLeaderboard, allTimeLeaderboard, selectedTimeframe, isStudying, joinSession, leaveSession, updateStatusMessage, getUserImage, getUserFrame, userRoles, isMod, joinedRoomId]);
+        userRoles, isMod, joinedRoomId, isFirebaseAuthReady
+    }), [username, userImage, setUsername, setUserImage, studyUsers, leaderboardUsers, communityUsers, weeklyLeaderboard, allTimeLeaderboard, selectedTimeframe, isStudying, joinSession, leaveSession, updateStatusMessage, getUserImage, getUserFrame, userRoles, isMod, joinedRoomId, isFirebaseAuthReady]);
 
     return <PresenceContext.Provider value={value}>{children}</PresenceContext.Provider>;
 };

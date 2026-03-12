@@ -1,0 +1,10 @@
+
+> liorea@1.1.0 typecheck
+> tsc --noEmit
+
+src/app/journal/components/JournalChat.tsx(404,115): error TS2339: Property 'giphy' does not exist on type '{ auth: { googleCheck: (email: string, photoURL: string | null) => Promise<{ exists: boolean; username: string; }>; googleCreate: (data: { email: string | null; username: string; photoURL: string | null; }) => Promise<...>; updateProfile: (data: { ...; }) => Promise<...>; updateStatus: (username: string, status_text...'.
+src/app/journal/components/JournalChat.tsx(404,141): error TS2339: Property 'giphy' does not exist on type '{ auth: { googleCheck: (email: string, photoURL: string | null) => Promise<{ exists: boolean; username: string; }>; googleCreate: (data: { email: string | null; username: string; photoURL: string | null; }) => Promise<...>; updateProfile: (data: { ...; }) => Promise<...>; updateStatus: (username: string, status_text...'.
+src/app/journal/components/JournalChat.tsx(717,37): error TS2322: Type '{ isCurrentUser: boolean; isModerator: boolean; onReact: (emoji: string) => Promise<void>; onReply: () => void; onDelete: () => Promise<void>; onReport: () => Promise<void>; isOpen: boolean; onOpenChange: (open: boolean) => void; }' is not assignable to type 'IntrinsicAttributes & MessageActionsProps'.
+  Property 'onReport' does not exist on type 'IntrinsicAttributes & MessageActionsProps'.
+src/features/study/components/ScreenShareTest.tsx(4,32): error TS2307: Cannot find module '../context/ScreenShareContext' or its corresponding type declarations.
+src/features/study/context/PresenceContext.tsx(896,38): error TS2741: Property 'isFirebaseAuthReady' is missing in type '{ username: string | null; userImage: string | null; setUsername: (name: string | null) => void; setUserImage: (url: string | null) => void; studyUsers: StudyUser[]; leaderboardUsers: StudyUser[]; ... 13 more ...; joinedRoomId: string | null; }' but required in type 'PresenceContextType'.
