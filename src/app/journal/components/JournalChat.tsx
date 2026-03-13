@@ -17,7 +17,10 @@ import { compressImage } from '@/lib/compress';
 // Robust timestamp parser
 const parseTimestamp = (ts: any): number => {
     if (!ts) return Date.now();
-    if (typeof ts === 'number') return ts;
+    if (typeof ts === 'number') {
+        // Handle seconds instead of milliseconds
+        return ts < 10000000000 ? ts * 1000 : ts;
+    }
     if (typeof ts === 'string') {
         const parsed = Date.parse(ts);
         return isNaN(parsed) ? Date.now() : parsed;
@@ -221,7 +224,8 @@ export const JournalChat: React.FC<JournalChatProps> = ({
             });
 
             setHasMore(false);
-            setIsInitialLoaded(true);
+            // We rely on the useLayoutEffect debounce to set isInitialLoaded to true
+            // This ensures we keep scrolling to bottom while initial images/content load
         });
 
         return () => {
@@ -256,6 +260,7 @@ export const JournalChat: React.FC<JournalChatProps> = ({
 
     // Debounced Smart Scroll Logic
     const initialLoadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useLayoutEffect(() => {
         const container = scrollContainerRef.current;
@@ -268,7 +273,11 @@ export const JournalChat: React.FC<JournalChatProps> = ({
         if (!isInitialLoaded || isNearBottom) {
             // Scroll to bottom
             if (scrollContainerRef.current) {
-                scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+                // Use smooth scrolling for better UX, but instant for the very first load
+                scrollContainerRef.current.scrollTo({
+                    top: scrollContainerRef.current.scrollHeight,
+                    behavior: isInitialLoaded ? 'smooth' : 'instant'
+                });
             }
 
             // Debounce the "loaded" state
@@ -401,7 +410,7 @@ export const JournalChat: React.FC<JournalChatProps> = ({
         } catch (e) { console.error(e); }
     };
 
-    const fetchGifs = async (query: string = "") => { setLoadingGifs(true); try { const data = await (query ? api.giphy.search(query) : api.giphy.trending()); setGifs(data.data); } catch (error) { console.error(error); } finally { setLoadingGifs(false); } };
+    const fetchGifs = async (query: string = "") => { setLoadingGifs(true); try { const data = await (query ? api.giphy.search(query) : api.giphy.trending()); setGifs((data as any)?.data || data || []); } catch (error) { console.error(error); } finally { setLoadingGifs(false); } };
 
     const handleSendGif = async (url: string) => {
         if (!activeJournal || !username) return;

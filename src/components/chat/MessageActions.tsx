@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Smile, Trash2, Reply } from 'lucide-react';
+import { Smile, Trash2, Reply, Flag } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface MessageActionsProps {
@@ -10,6 +10,7 @@ interface MessageActionsProps {
     onReact: (emoji: string) => void;
     onReply: () => void;
     onDelete: () => void;
+    onReport?: () => void;
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
 }
@@ -35,6 +36,7 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
     onReact,
     onReply,
     onDelete,
+    onReport,
     isOpen,
     onOpenChange
 }) => {
@@ -162,6 +164,17 @@ export const MessageActions: React.FC<MessageActionsProps> = ({
                     title="Delete message"
                 >
                     <Trash2 className="w-3.5 h-3.5" />
+                </button>
+            )}
+
+            {/* Report Button (for others) */}
+            {onReport && !isCurrentUser && (
+                <button
+                    onClick={onReport}
+                    className="hover:bg-destructive/20 text-destructive rounded p-1 transition-colors"
+                    title="Report message"
+                >
+                    <Flag className="w-3.5 h-3.5" />
                 </button>
             )}
         </div>
