@@ -24,7 +24,6 @@ export const metadata: Metadata = {
   description: "Your personalized virtual workspace.",
 };
 
-import MobileWarning from "@/components/MobileWarning";
 import ErudaProvider from '@/components/ErudaProvider';
 
 // ... (other imports)
@@ -43,8 +42,7 @@ export default function RootLayout({
         <ErudaProvider>
           <DisableContextMenu />
           <Providers>
-            <MobileWarning />
-            <div className="hidden md:block h-full w-full">
+            <div className="h-full w-full">
               {children}
             </div>
           </Providers>

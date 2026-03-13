@@ -52,22 +52,10 @@ export default function LioreaClient() {
       <Header />
 
       {/* Main Layout - Flexbox for precise geometric centering */}
-      <main className="relative z-1 h-screen w-full flex overflow-hidden pt-[72px]">
+      <main className="relative z-1 min-h-[calc(100dvh-72px)] md:h-screen w-full flex flex-col md:flex-row overflow-y-auto md:overflow-hidden pt-[72px] pb-10 md:pb-0 gap-8 md:gap-0">
 
-        {/* Left Column - Community Panel */}
-        {/* Fixed width, with padding to separate from header and elongate downwards */}
-        <div className="hidden md:flex w-72 flex-col pl-4 pb-4 pt-6 h-full shrink-0">
-          <div className="w-full h-full">
-            {/* Inner container takes full height of this column */}
-            <ErrorBoundary name="Presence Panel">
-              <PresencePanel users={communityUsers} />
-            </ErrorBoundary>
-          </div>
-        </div>
-
-        {/* Center Column - Welcome & Status */}
-        {/* Flex-1 takes remaining space, geometric center */}
-        <div className="flex-1 flex flex-col items-center justify-center relative pb-32">
+        {/* Center Column - Welcome & Status (Moves to top on mobile) */}
+        <div className="flex-1 flex flex-col items-center justify-center relative md:pb-32 order-1 md:order-2 mt-8 md:mt-0">
           <div className="flex flex-col items-center justify-center gap-8 w-full max-w-2xl px-4">
             <ErrorBoundary name="Welcome Panel">
               <WelcomePanel />
@@ -81,8 +69,20 @@ export default function LioreaClient() {
           </div>
         </div>
 
-        {/* Right Column - Exam Timers */}
-        <div className="hidden md:flex w-72 flex-col pr-4 pb-4 pt-6 h-full shrink-0 gap-3">
+        {/* Left Column - Community Panel (Moves to middle on mobile) */}
+        <div className="flex w-full px-4 md:px-0 md:w-72 flex-col md:pl-4 md:pb-4 md:pt-6 h-[400px] md:h-full shrink-0 order-2 md:order-1">
+          <div className="w-full h-full">
+            {/* Inner container takes full height of this column */}
+            <ErrorBoundary name="Presence Panel">
+              <PresencePanel users={communityUsers} />
+            </ErrorBoundary>
+          </div>
+        </div>
+
+
+
+        {/* Right Column - Exam Timers (Moves to bottom on mobile) */}
+        <div className="flex w-full px-4 md:px-0 md:w-72 flex-col md:pr-4 md:pb-4 md:pt-6 h-auto md:h-full shrink-0 gap-3 order-3">
           <ExamCountdown title="JEE Mains (Session 1)" targetDate={jeeTargetDate} displayDate="21-30 Jan 26" />
           <ExamCountdown title="JEE Mains (Session 2)" targetDate={jeeSession2TargetDate} displayDate="2-9 Apr 26" />
           <ExamCountdown title="NEET UG" targetDate={neetTargetDate} displayDate="3 May 26" />

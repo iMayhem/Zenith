@@ -171,10 +171,10 @@ function PersonalStudyContent() {
                 <Header />
 
                 {/* Content Container */}
-                <main className="container mx-auto pt-20 px-4 h-screen flex gap-6 pb-20 relative">
+                <main className="container mx-auto pt-20 px-4 h-screen flex flex-col md:flex-row gap-4 md:gap-6 pb-20 relative">
 
-                    {/* LEFT: Study Grid Panel */}
-                    <div className="w-[45%] flex flex-col bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-xl overflow-hidden p-6 relative">
+                    {/* TOP/LEFT: Study Grid Panel */}
+                    <div className="w-full h-[30vh] shrink-0 md:h-auto md:w-[45%] flex flex-col bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-xl overflow-hidden p-4 md:p-6 relative">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
                                 {isOwner ? "My Room" : "Friend's Room"}
@@ -287,8 +287,8 @@ function PersonalStudyContent() {
                         <StudyGrid users={studyUsers} />
                     </div>
 
-                    {/* RIGHT: Chat Panel */}
-                    <div className="flex-1 flex flex-col bg-transparent rounded-2xl border-none shadow-none overflow-hidden relative">
+                    {/* BOTTOM/RIGHT: Chat Panel */}
+                    <div className="flex-1 min-h-0 flex flex-col bg-transparent rounded-2xl border-none shadow-none overflow-hidden relative">
                         <ChatPanel />
                     </div>
 

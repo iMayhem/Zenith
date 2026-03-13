@@ -634,7 +634,7 @@ export const JournalChat: React.FC<JournalChatProps> = ({
             <input type="file" ref={chatFileInputRef} className="hidden" accept="image/*" onChange={handleChatFileChange} />
             <div className="h-16 glass-panel-light flex items-center px-6 shrink-0 justify-between select-none">
                 <div className="flex items-center gap-3 overflow-hidden">
-                    <Button variant="ghost" size="icon" className="md:hidden mr-1 -ml-2 h-8 w-8" onClick={onBack}><ArrowLeft className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" className="xl:hidden mr-1 -ml-2 h-8 w-8" onClick={onBack}><ArrowLeft className="w-4 h-4" /></Button>
                     <div>
                         <span className="font-bold text-lg text-white truncate"># {activeJournal.title}</span>
                         <span className="text-sm text-white/40 truncate hidden sm:inline ml-2">by {activeJournal.username}</span>

@@ -148,32 +148,38 @@ function JournalContent() {
             <Header />
             <input type="file" ref={cardFileInputRef} className="hidden" accept="image/*" multiple onChange={handleCardFileChange} />
 
-            <main className="container mx-auto pt-20 px-4 h-screen flex gap-6 pb-4">
-                <JournalSidebar
-                    sortedJournals={sortedJournals}
-                    activeJournal={activeJournal}
-                    followedIds={followedIds}
-                    username={username || ""}
-                    onOpenJournal={handleOpenJournal}
-                    onUploadClick={handleCardUploadClick}
-                    onDeleteClick={setJournalToDelete}
-                    newTitle={newTitle}
-                    setNewTitle={setNewTitle}
-                    newTags={newTags}
-                    setNewTags={setNewTags}
-                    onCreateJournal={createJournal}
-                    isCreateDialogOpen={isCreateDialogOpen}
-                    setIsCreateDialogOpen={setIsCreateDialogOpen}
-                />
+            <main className="container mx-auto pt-16 md:pt-20 px-4 h-[calc(100dvh-64px)] md:h-screen flex gap-6 pb-4">
+                {/* SIDEBAR: Hidden on mobile if a journal is active */}
+                <div className={`w-full xl:w-auto shrink-0 h-full ${activeJournal ? 'hidden xl:block' : 'block'}`}>
+                    <JournalSidebar
+                        sortedJournals={sortedJournals}
+                        activeJournal={activeJournal}
+                        followedIds={followedIds}
+                        username={username || ""}
+                        onOpenJournal={handleOpenJournal}
+                        onUploadClick={handleCardUploadClick}
+                        onDeleteClick={setJournalToDelete}
+                        newTitle={newTitle}
+                        setNewTitle={setNewTitle}
+                        newTags={newTags}
+                        setNewTags={setNewTags}
+                        onCreateJournal={createJournal}
+                        isCreateDialogOpen={isCreateDialogOpen}
+                        setIsCreateDialogOpen={setIsCreateDialogOpen}
+                    />
+                </div>
 
-                <JournalChat
-                    activeJournal={activeJournal}
-                    username={username || ""}
-                    isFollowed={activeJournal ? followedIds.includes(activeJournal.id) : false}
-                    onToggleFollow={handleFollowToggle}
-                    onBack={handleBackToGallery}
-                    leaderboardUsers={leaderboardUsers}
-                />
+                {/* CHAT: Hidden on mobile if NO journal is active */}
+                <div className={`flex-1 min-w-0 h-full ${activeJournal ? 'block' : 'hidden xl:block'}`}>
+                    <JournalChat
+                        activeJournal={activeJournal}
+                        username={username || ""}
+                        isFollowed={activeJournal ? followedIds.includes(activeJournal.id) : false}
+                        onToggleFollow={handleFollowToggle}
+                        onBack={handleBackToGallery}
+                        leaderboardUsers={leaderboardUsers}
+                    />
+                </div>
 
                 <AlertDialog open={!!journalToDelete} onOpenChange={() => setJournalToDelete(null)}>
                     <AlertDialogContent className="bg-black/40 backdrop-blur-xl border-white/20 text-white">

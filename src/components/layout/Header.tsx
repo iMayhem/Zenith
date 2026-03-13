@@ -1,11 +1,12 @@
 "use client";
 
 import Link from 'next/link';
-import { Sparkles, Bell, BookOpenCheck, Home, NotebookText, CheckCheck, Bug, Loader2, ShoppingBag, Brain, Pin, PinOff } from 'lucide-react';
+import { Sparkles, Bell, BookOpenCheck, Home, NotebookText, CheckCheck, Bug, Loader2, ShoppingBag, Brain, Pin, PinOff, Menu } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/context/NotificationContext';
 import { ScrollArea } from '../ui/scroll-area';
@@ -229,50 +230,113 @@ export default function Header() {
                         </PopoverContent>
                     </Popover>
 
-                    <Link href="/home" className={cn(
-                        "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
-                        'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
-                        pathname === '/home' && 'bg-white/10 text-white'
-                    )}>
-                        <Home className="w-4 h-4" />
-                        <span className="hidden sm:inline">Home</span>
-                    </Link>
+                    <div className="hidden lg:flex items-center gap-2">
+                        <Link href="/home" className={cn(
+                            "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
+                            'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
+                            pathname === '/home' && 'bg-white/10 text-white'
+                        )}>
+                            <Home className="w-4 h-4" />
+                            <span>Home</span>
+                        </Link>
 
-                    <Link href="/personal" className={cn(
-                        "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
-                        'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
-                        pathname === '/personal' && 'bg-white/10 text-white'
-                    )}>
-                        <Brain className="w-4 h-4" />
-                        <span className="hidden sm:inline">Personal</span>
-                    </Link>
+                        <Link href="/personal" className={cn(
+                            "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
+                            'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
+                            pathname === '/personal' && 'bg-white/10 text-white'
+                        )}>
+                            <Brain className="w-4 h-4" />
+                            <span>Personal</span>
+                        </Link>
 
-                    <Link href="/study-together" className={cn(
-                        "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
-                        'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
-                        pathname === '/study-together' && 'bg-white/10 text-white'
-                    )}>
-                        <Sparkles className="w-4 h-4" />
-                        <span className="hidden sm:inline">Study Room</span>
-                    </Link>
+                        <Link href="/study-together" className={cn(
+                            "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
+                            'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
+                            pathname === '/study-together' && 'bg-white/10 text-white'
+                        )}>
+                            <Sparkles className="w-4 h-4" />
+                            <span>Study Room</span>
+                        </Link>
 
-                    <Link href="/journal" className={cn(
-                        "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
-                        'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
-                        pathname === '/journal' && 'bg-white/10 text-white'
-                    )}>
-                        <NotebookText className="w-4 h-4" />
-                        <span className="hidden sm:inline">Journal</span>
-                    </Link>
+                        <Link href="/journal" className={cn(
+                            "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
+                            'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
+                            pathname === '/journal' && 'bg-white/10 text-white'
+                        )}>
+                            <NotebookText className="w-4 h-4" />
+                            <span>Journal</span>
+                        </Link>
 
-                    <Link href="/changelog" className={cn(
-                        "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
-                        'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
-                        pathname === '/changelog' && 'bg-white/10 text-white'
-                    )}>
-                        <CheckCheck className="w-4 h-4" />
-                        <span className="hidden sm:inline">Changelog</span>
-                    </Link>
+                        <Link href="/changelog" className={cn(
+                            "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
+                            'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
+                            pathname === '/changelog' && 'bg-white/10 text-white'
+                        )}>
+                            <CheckCheck className="w-4 h-4" />
+                            <span>Changelog</span>
+                        </Link>
+                    </div>
+
+                    {/* MOBILE MENU */}
+                    <div className="lg:hidden ml-1">
+                        <Sheet>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 hover:text-white rounded-full">
+                                    <Menu className="w-6 h-6" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="right" className="bg-black/80 backdrop-blur-xl border-white/10 text-white w-[280px]">
+                                <SheetHeader className="text-left mb-6">
+                                    <SheetTitle className="text-white flex items-center gap-2">
+                                        <BookOpenCheck className="w-5 h-5 text-accent" />
+                                        Liorea Navigation
+                                    </SheetTitle>
+                                </SheetHeader>
+                                <div className="flex flex-col gap-3">
+                                    <Link href="/home" className={cn(
+                                        "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",
+                                        'text-white/80 hover:text-white hover:bg-white/10',
+                                        pathname === '/home' && 'bg-white/10 text-white font-medium'
+                                    )}>
+                                        <Home className="w-5 h-5" />
+                                        Home
+                                    </Link>
+                                    <Link href="/personal" className={cn(
+                                        "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",
+                                        'text-white/80 hover:text-white hover:bg-white/10',
+                                        pathname === '/personal' && 'bg-white/10 text-white font-medium'
+                                    )}>
+                                        <Brain className="w-5 h-5" />
+                                        Personal
+                                    </Link>
+                                    <Link href="/study-together" className={cn(
+                                        "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",
+                                        'text-white/80 hover:text-white hover:bg-white/10',
+                                        pathname === '/study-together' && 'bg-white/10 text-white font-medium'
+                                    )}>
+                                        <Sparkles className="w-5 h-5" />
+                                        Study Room
+                                    </Link>
+                                    <Link href="/journal" className={cn(
+                                        "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",
+                                        'text-white/80 hover:text-white hover:bg-white/10',
+                                        pathname === '/journal' && 'bg-white/10 text-white font-medium'
+                                    )}>
+                                        <NotebookText className="w-5 h-5" />
+                                        Journal
+                                    </Link>
+                                    <Link href="/changelog" className={cn(
+                                        "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",
+                                        'text-white/80 hover:text-white hover:bg-white/10',
+                                        pathname === '/changelog' && 'bg-white/10 text-white font-medium'
+                                    )}>
+                                        <CheckCheck className="w-5 h-5" />
+                                        Changelog
+                                    </Link>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
 
                 </nav>
             </div>
