@@ -82,14 +82,14 @@ export default function StudyTogetherPage() {
         <Header />
 
         {/* Content Container - Match Journal's Layout */}
-        <main className="container mx-auto pt-20 px-4 h-screen flex flex-col md:flex-row gap-4 md:gap-6 pb-20">
+        <main className="container mx-auto pt-20 px-4 h-screen flex gap-6 pb-20">
 
-          {/* TOP/LEFT: Study Grid Panel (Solid) - No Header */}
-          <div className="w-full h-[25vh] shrink-0 md:h-auto md:w-[45%] flex flex-col bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-xl overflow-hidden p-4 md:p-6">
+          {/* LEFT: Study Grid Panel (Solid) - No Header */}
+          <div className="w-[45%] flex flex-col bg-card/80 backdrop-blur-xl rounded-2xl border border-border shadow-xl overflow-hidden p-6">
             <StudyGrid users={studyUsers} />
           </div>
 
-          {/* BOTTOM/RIGHT: Chat Panel (Solid) */}
+          {/* RIGHT: Chat Panel (Solid) */}
           <div className="flex-1 min-h-0 flex flex-col bg-transparent rounded-2xl border-none shadow-none overflow-hidden relative">
             <ChatPanel />
           </div>

@@ -29,8 +29,12 @@ import { soundEffects } from '@/lib/sound-effects';
 
 type TenorResult = { id: string; media_formats: { tinygif: { url: string }; mediumgif: { url: string }; gif: { url: string }; } }
 
+interface ChatPanelProps {
+    hideHeader?: boolean;
+    hideSettings?: boolean;
+}
 
-export default function ChatPanel() {
+export default function ChatPanel({ hideHeader, hideSettings }: ChatPanelProps = {}) {
     const {
         messages, sendMessage, sendReaction, sendTypingEvent,
         typingUsers, loadMoreMessages, hasMore, deleteMessage, retryMessage
@@ -306,32 +310,36 @@ export default function ChatPanel() {
 
     return (
         <div className="flex-1 flex flex-col h-full bg-card/80 backdrop-blur-xl border border-border rounded-2xl overflow-hidden shadow-2xl">
-            {/* Header */}
-            <div className="h-16 flex items-center px-6 py-5 shrink-0 justify-between select-none border-b border-border bg-card/50">
-                <div className="flex items-center gap-3">
-                    <MessageSquare className="w-5 h-5 text-muted-foreground" />
-                    <div>
-                        <span className="font-bold text-base text-foreground">Study Room</span>
-                        <span className="text-xs text-muted-foreground hidden sm:inline ml-2">General Channel</span>
+            {/* Configurable Header */}
+            {!hideHeader && (
+                <div className="h-16 flex items-center px-6 py-5 shrink-0 justify-between select-none border-b border-border bg-card/50">
+                    <div className="flex items-center gap-3">
+                        <MessageSquare className="w-5 h-5 text-muted-foreground" />
+                        <div>
+                            <span className="font-bold text-base text-foreground">Study Room</span>
+                            <span className="text-xs text-muted-foreground hidden sm:inline ml-2">General Channel</span>
+                        </div>
                     </div>
-                </div>
 
-                {/* Mute Button */}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    onClick={() => {
-                        soundEffects.setEnabled(!soundEffects.getEnabled());
-                    }}
-                >
-                    {soundEffects.getEnabled() ? (
-                        <Volume2 className="w-4 h-4" />
-                    ) : (
-                        <VolumeX className="w-4 h-4" />
+                    {/* Mute Button */}
+                    {!hideSettings && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                                soundEffects.setEnabled(!soundEffects.getEnabled());
+                            }}
+                        >
+                            {soundEffects.getEnabled() ? (
+                                <Volume2 className="w-4 h-4" />
+                            ) : (
+                                <VolumeX className="w-4 h-4" />
+                            )}
+                        </Button>
                     )}
-                </Button>
-            </div>
+                </div>
+            )}
 
             {/* Chat Area */}
             <div
