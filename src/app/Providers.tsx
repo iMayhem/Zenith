@@ -9,7 +9,6 @@ import BackgroundDisplay from '@/components/layout/BackgroundDisplay';
 import { FocusProvider } from '@/context/FocusContext';
 import FocusOverlay from '@/components/layout/FocusOverlay';
 import { NavigationEvents } from '@/components/layout/NavigationEvents';
-import MobileMessage from '@/components/layout/MobileMessage';
 import { UserContextMenuProvider } from '@/context/UserContextMenuContext';
 import { SettingsProvider } from '@/context/SettingsContext';
 import GlobalUserContextMenu from '@/components/layout/GlobalUserContextMenu';
@@ -43,7 +42,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
                                                         <FocusProvider>
                                                             <FocusOverlay />
                                                             {children}
-                                                            <MobileMessage />
                                                             <GlobalUserContextMenu />
                                                         </FocusProvider>
                                                     </ErrorBoundary>
