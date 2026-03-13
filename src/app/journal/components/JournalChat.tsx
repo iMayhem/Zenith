@@ -631,20 +631,26 @@ export const JournalChat: React.FC<JournalChatProps> = ({
                             <div
                                 key={post.id}
                                 id={`journal-post-${post.id}`}
-                                className={`group relative flex items-start gap-4 pr-2 hover:bg-white/[0.04] -mx-4 px-4 py-[2px] transition-colors ${showHeader ? 'mt-4' : 'mt-0'}`}
+                                className={`group relative flex gap-4 pr-4 hover:bg-white/[0.04] -mx-4 px-4 transition-colors py-0 ${showHeader ? 'mt-1.5' : 'mt-0'}`}
                             >
-                                <div className="w-10 shrink-0 select-none pt-0.5 flex flex-col items-center">
-                                    {showHeader ? (<UserAvatar username={post.username} className="w-10 h-10 hover:opacity-90 cursor-pointer" />) : (<div className="w-10 text-[10px] text-white/20 text-center opacity-0 group-hover:opacity-100 mt-1 select-none">{new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</div>)}
+                                <div className="w-10 shrink-0 select-none pt-0">
+                                    {showHeader ? (
+                                        <UserAvatar username={post.username} className="w-10 h-10 hover:opacity-90 cursor-pointer" />
+                                    ) : (
+                                        <div className="text-[10px] text-white/0 opacity-0 group-hover:opacity-100 text-right w-full pr-2 pt-0 select-none">
+                                            {new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
                                     {showHeader && (
-                                        <div className="flex items-center gap-2 mb-1 select-none">
+                                        <div className="flex items-center gap-2 mb-0 select-none">
                                             <span className="text-base font-semibold text-white hover:underline cursor-pointer">{post.username}</span>
                                             {isMod(post.username) && (
                                                 <span className="px-1.5 py-0.5 text-[10px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded">MOD</span>
                                             )}
-                                            <span className="text-xs text-white/30 ml-1">{formatDate(post.created_at)} at {formatTime(post.created_at)}</span>
+                                            <span className="text-xs text-white/50 ml-1">{formatDate(post.created_at)} at {formatTime(post.created_at)}</span>
                                         </div>
                                     )}
 
@@ -660,7 +666,7 @@ export const JournalChat: React.FC<JournalChatProps> = ({
                                         </div>
                                     )}
 
-                                    <div className="text-base text-white/90 leading-snug whitespace-pre-wrap break-words">
+                                    <div className="text-base text-white/90 leading-[1.375rem] whitespace-pre-wrap break-words font-light tracking-wide">
                                         {(() => {
                                             try {
                                                 const parsed = JSON.parse(post.content);
@@ -681,11 +687,11 @@ export const JournalChat: React.FC<JournalChatProps> = ({
                                     </div>
 
                                     {post.image_url && (
-                                        <div className="mt-2 select-none">
+                                        <div className="mt-1 select-none">
                                             <img
                                                 src={post.image_url}
                                                 alt="Attachment"
-                                                className="h-[200px] w-auto object-cover rounded-md border border-white/10 cursor-pointer hover:opacity-90 transition-opacity"
+                                                className="max-w-[300px] h-[200px] w-auto object-cover rounded-lg border border-white/10 cursor-pointer hover:opacity-90 transition-opacity"
                                                 loading="lazy"
                                                 onClick={() => setViewerImage(post.image_url!)}
                                             />
