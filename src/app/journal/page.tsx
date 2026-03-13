@@ -24,7 +24,6 @@ import { api } from '@/lib/api';
 import { JournalSidebar } from './components/JournalSidebar';
 import { JournalChat } from './components/JournalChat';
 import { Journal } from './types';
-import { JournalOverlay } from '@/components/layout/JournalOverlay';
 
 function JournalContent() {
     const { username, leaderboardUsers } = usePresence();
@@ -190,7 +189,6 @@ function JournalContent() {
 export default function JournalPage() {
     return (
         <div className="min-h-screen text-white bg-transparent overflow-hidden">
-            <JournalOverlay />
             <Suspense fallback={<div className="flex h-screen items-center justify-center text-white/50">Loading...</div>}>
                 <JournalContent />
             </Suspense>

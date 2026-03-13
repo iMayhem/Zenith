@@ -206,7 +206,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
     // --- EAGER PRESENCE INITIALIZATION ---
     // Set online status immediately, don't wait for Firebase connection
     useEffect(() => {
-        if (!username) return;
+        if (!username || !isFirebaseAuthReady) return;
 
         const commRef = ref(db, `/community_presence/${username}`);
 
@@ -231,11 +231,11 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
                 is_studying: false
             });
         };
-    }, [username]);
+    }, [username, isFirebaseAuthReady]);
 
     // --- GLOBAL PRESENCE (Write) ---
     useEffect(() => {
-        if (!username) return;
+        if (!username || !isFirebaseAuthReady) return;
 
         // 1. Realtime DB: Ephemeral Status
         const commRef = ref(db, `/community_presence/${username}`);
@@ -295,7 +295,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
             unsubscribe();
             onDisconnect(commRef).cancel();
         };
-    }, [username, userImage, userFrame]);
+    }, [username, userImage, userFrame, isFirebaseAuthReady]);
 
     // --- DATA LISTENERS ---
 
@@ -491,7 +491,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
             setStudyUsers([]);
             return;
         }
-        if (joinedRoomId !== 'public' && !isFirebaseAuthReady) return;
+        if (!isFirebaseAuthReady) return;
 
         let unsubscribe: any = () => { };
         let animationFrameId: number;
@@ -560,10 +560,11 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
             unsubscribe();
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
         };
-    }, [joinedRoomId]);
+    }, [joinedRoomId, isFirebaseAuthReady]);
 
     // 3. Community Presence (State Source)
     useEffect(() => {
+        if (!isFirebaseAuthReady) return;
         const globalRef = query(ref(db, '/community_presence'), limitToLast(100));
         let latestData: any = null;
         let lastUpdate = 0;
@@ -632,7 +633,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
             unsubscribe();
             cancelAnimationFrame(animationFrameId);
         };
-    }, [firestoreProfiles]); // Re-run when profiles update
+    }, [firestoreProfiles, isFirebaseAuthReady]); // Re-run when profiles update
 
     const leaderboardUsers = useMemo(() => {
         const map = new Map<string, StudyUser>();
@@ -728,7 +729,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
     // 5. Initialize/Maintain Study Session
     useEffect(() => {
         if (!joinedRoomId || !username) return;
-        if (joinedRoomId !== 'public' && !isFirebaseAuthReady) return;
+        if (!isFirebaseAuthReady) return;
 
         let rdbRef: any;
         let firestoreHeartbeatInterval: NodeJS.Timeout;
@@ -797,11 +798,11 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
                 deleteDoc(doc(firestore, 'rooms', joinedRoomId, 'presence', username)).catch(() => { });
             }
         };
-    }, [joinedRoomId, username, userImage, userFrame]);
+    }, [joinedRoomId, username, userImage, userFrame, isFirebaseAuthReady]);
 
     // --- TIMER (Writes to Firestore) ---
     useEffect(() => {
-        if (!username || !isStudying) return;
+        if (!username || !isStudying || !isFirebaseAuthReady) return;
 
         const updateFirestore = async () => {
             const today = new Date().toISOString().split('T')[0];
@@ -846,7 +847,7 @@ export const PresenceProvider = ({ children }: { children: ReactNode }) => {
             clearInterval(interval);
             flushToCloudflare();
         };
-    }, [username, isStudying, userImage]);
+    }, [username, isStudying, userImage, isFirebaseAuthReady]);
 
     const joinSession = useCallback((roomId: string = "public") => {
         setJoinedRoomId(roomId);

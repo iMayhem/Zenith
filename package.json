@@ -42,6 +42,7 @@
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
     "emoji-picker-react": "^4.16.1",
+    "eruda": "^3.4.3",
     "firebase": "^11.10.0",
     "framer-motion": "^11.2.12",
     "lottie-react": "^2.4.1",

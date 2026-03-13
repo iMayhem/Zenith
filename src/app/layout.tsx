@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 };
 
 import MobileWarning from "@/components/MobileWarning";
+import ErudaProvider from '@/components/ErudaProvider';
 
 // ... (other imports)
 
@@ -39,13 +40,15 @@ export default function RootLayout({
         <link rel="icon" href="https://pub-cb3ee67ac9934a35a6d7ddc427fbcab6.r2.dev/favicon/favicon.svg" />
       </head>
       <body className="font-body antialiased h-screen w-screen overflow-hidden select-none">
-        <DisableContextMenu />
-        <Providers>
-          <MobileWarning />
-          <div className="hidden md:block h-full w-full">
-            {children}
-          </div>
-        </Providers>
+        <ErudaProvider>
+          <DisableContextMenu />
+          <Providers>
+            <MobileWarning />
+            <div className="hidden md:block h-full w-full">
+              {children}
+            </div>
+          </Providers>
+        </ErudaProvider>
       </body>
     </html>
   );
