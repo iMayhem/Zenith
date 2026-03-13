@@ -190,38 +190,24 @@ export const JournalChat: React.FC<JournalChatProps> = ({
                             { username: uid, emoji: emoji }
                         ]), [])
                         : [],
-                    task_states: data.task_states || {}
+                    task_states: data.task_states || {},
+                    nonce: data.nonce
                 });
             });
 
             setPosts(prev => {
                 const idMap = new Map<string, Post>();
-                prev.forEach(p => idMap.set(String(p.id), p));
+                const serverNonces = new Set(livePosts.map(p => p.nonce).filter(Boolean));
+
+                prev.forEach(p => {
+                    // Drop optimistic posts that the server has already confirmed via nonce
+                    if (p.status === 'sending' && serverNonces.has(p.nonce)) return;
+                    idMap.set(String(p.id), p);
+                });
+
                 livePosts.forEach(p => idMap.set(String(p.id), p));
 
-                const allPosts = Array.from(idMap.values()).sort((a, b) => a.created_at - b.created_at);
-
-                // Fuzzy Dedupe
-                const deduped: Post[] = [];
-                if (allPosts.length > 0) deduped.push(allPosts[0]);
-
-                for (let i = 1; i < allPosts.length; i++) {
-                    const current = allPosts[i];
-                    const previous = deduped[deduped.length - 1];
-
-                    const isSameUser = current.username === previous.username;
-                    const isSameContent = current.content === previous.content && current.image_url === previous.image_url;
-                    const timeDiff = Math.abs(current.created_at - previous.created_at);
-                    const isWithinWindow = timeDiff < 60000;
-
-                    if (isSameUser && isSameContent && isWithinWindow) {
-                        deduped.pop();
-                        deduped.push(current);
-                    } else {
-                        deduped.push(current);
-                    }
-                }
-                return deduped;
+                return Array.from(idMap.values()).sort((a, b) => a.created_at - b.created_at);
             });
 
             setHasMore(false);
@@ -440,45 +426,83 @@ export const JournalChat: React.FC<JournalChatProps> = ({
 
     const handleSendGif = async (url: string) => {
         if (!activeJournal || !username) return;
-        const tempPost = { id: Date.now(), username, content: "", image_url: url, created_at: Date.now() };
-        // setPosts(prev => [...prev, tempPost]); // Optimistic - let listener handle it to avoid dupes/ID issues
+        const nonce = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const tempId = `temp-${nonce}`;
+        const tempPost: Post = { id: tempId, username, content: "", image_url: url, created_at: Date.now(), status: 'sending', nonce, reactions: [] };
+
+        setPosts(prev => [...prev, tempPost].sort((a, b) => a.created_at - b.created_at));
+        setIsGifPopoverOpen(false);
+
         try {
             await addDoc(collection(firestore, `journals/${activeJournal.id}/posts`), {
                 username,
                 content: "",
                 image_url: url,
                 created_at: serverTimestamp(),
-                reactions: {}
+                reactions: {},
+                nonce
             });
             notifyChatUpdate(activeJournal.id);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            setPosts(prev => prev.map(p => p.id === tempId ? { ...p, status: 'error' } : p));
+        }
     };
 
     const handleChatFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || !e.target.files[0] || !activeJournal || !username) return;
         setIsUploadingChatImage(true);
+        const file = e.target.files[0];
         try {
-            const compressed = await compressImage(e.target.files[0]);
+            const compressed = await compressImage(file);
             const { url } = await api.upload.put(compressed);
-            // const tempPost = { id: Date.now(), username, content: "", image_url: url, created_at: Date.now() };
-            // setPosts(prev => [...prev, tempPost]);
+
+            const nonce = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const tempId = `temp-${nonce}`;
+            const tempPost: Post = { id: tempId, username, content: "", image_url: url, created_at: Date.now(), status: 'sending', nonce, reactions: [] };
+            setPosts(prev => [...prev, tempPost].sort((a, b) => a.created_at - b.created_at));
+
             await addDoc(collection(firestore, `journals/${activeJournal.id}/posts`), {
                 username,
                 content: "",
                 image_url: url,
                 created_at: serverTimestamp(),
-                reactions: {}
+                reactions: {},
+                nonce
             });
             notifyChatUpdate(activeJournal.id);
-        } catch (error) { toast({ variant: "destructive", title: "Error" }); } finally { setIsUploadingChatImage(false); if (chatFileInputRef.current) chatFileInputRef.current.value = ""; }
+        } catch (error) {
+            toast({ variant: "destructive", title: "Error" });
+        } finally {
+            setIsUploadingChatImage(false);
+            if (chatFileInputRef.current) chatFileInputRef.current.value = "";
+        }
     };
 
     const sendPost = async () => {
         if (!newMessage.trim() || !activeJournal || !username) return;
 
         const content = newMessage;
+        const currentReplyTo = replyingTo;
+
         setNewMessage("");
         setReplyingTo(null);
+        if (chatInputRef.current) chatInputRef.current.style.height = 'auto';
+
+        const nonce = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const tempId = `temp-${nonce}`;
+        const tempPost: Post = {
+            id: tempId,
+            username,
+            content,
+            created_at: Date.now(),
+            replyTo: currentReplyTo ? { id: currentReplyTo.id, username: currentReplyTo.username, content: currentReplyTo.content } : undefined,
+            status: 'sending',
+            nonce,
+            reactions: []
+        };
+
+        setPosts(prev => [...prev, tempPost].sort((a, b) => a.created_at - b.created_at));
 
         // --- MENTION NOTIFICATIONS ---
         const mentions = content.match(/@(\w+)/g);
@@ -486,9 +510,6 @@ export const JournalChat: React.FC<JournalChatProps> = ({
             const uniqueUsers = Array.from(new Set(mentions.map(m => m.substring(1))));
             uniqueUsers.forEach(taggedUser => {
                 if (taggedUser !== username) {
-                    // Assuming we can link to the specific journal if we had a route?
-                    // For now, just link to Journal page? Or '/journal?id=...'
-                    // Let's use generic link or just notification text.
                     addNotification(`${username} mentioned you in Journal: ${activeJournal.title}`, taggedUser);
                 }
             });
@@ -499,32 +520,42 @@ export const JournalChat: React.FC<JournalChatProps> = ({
                 username,
                 content,
                 created_at: serverTimestamp(),
-                replyTo: replyingTo ? JSON.stringify(replyingTo) : null,
-                reactions: {}
+                replyTo: currentReplyTo ? JSON.stringify(currentReplyTo) : null,
+                reactions: {},
+                nonce
             });
             notifyChatUpdate(activeJournal.id);
-
-
-
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            setPosts(prev => prev.map(p => p.id === tempId ? { ...p, status: 'error' } : p));
+        }
     };
 
     const handleSendTaskList = async (title: string, items: string[]) => {
         if (!activeJournal || !username) return;
-        const content: TaskListContent = { type: 'task_list', title, items };
-        const contentString = JSON.stringify(content);
-        const tempPost = { id: Date.now(), username, content: contentString, created_at: Date.now() };
-        // setPosts(prev => [...prev, tempPost]); // Let listener handle it
+        const contentData: TaskListContent = { type: 'task_list', title, items };
+        const contentString = JSON.stringify(contentData);
+
+        const nonce = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const tempId = `temp-${nonce}`;
+        const tempPost: Post = { id: tempId, username, content: contentString, created_at: Date.now(), status: 'sending', nonce, reactions: [], task_states: {} };
+
+        setPosts(prev => [...prev, tempPost].sort((a, b) => a.created_at - b.created_at));
+
         try {
             await addDoc(collection(firestore, `journals/${activeJournal.id}/posts`), {
                 username,
                 content: contentString,
                 created_at: serverTimestamp(),
                 reactions: {},
-                task_states: {} // Initialize empty states
+                task_states: {},
+                nonce
             });
             notifyChatUpdate(activeJournal.id);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            setPosts(prev => prev.map(p => p.id === tempId ? { ...p, status: 'error' } : p));
+        }
     };
 
     const handleToggleTask = async (postId: string | number, taskIndex: number) => {

@@ -28,6 +28,8 @@ export type Post = {
         username: string;
         content: string;
     };
+    status?: 'sending' | 'sent' | 'error';
+    nonce?: string;
 };
 
 export type GiphyResult = {
