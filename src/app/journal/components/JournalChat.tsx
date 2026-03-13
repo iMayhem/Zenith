@@ -249,52 +249,77 @@ export const JournalChat: React.FC<JournalChatProps> = ({
     }, [posts.length, isInitialLoaded, username]);
 
 
-    useLayoutEffect(() => {
-        const container = scrollContainerRef.current;
-        if (container && prevScrollHeight.current > 0 && container.scrollHeight > prevScrollHeight.current) {
-            const newScrollHeight = container.scrollHeight;
-            const diff = newScrollHeight - prevScrollHeight.current;
-            container.scrollTop = diff + container.scrollTop;
-            prevScrollHeight.current = 0;
-        }
-    }, [posts]);
+    // We rely on the unified scroll effect below to handle pagination anchoring, so removing this
+    // redundant auto-scroll.
 
-    // Debounced Smart Scroll Logic
+    // Initial load timeout and message tracking
     const initialLoadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const previousMessagesRef = useRef<Post[]>([]);
+    const prevScrollHeightRef = useRef<number>(0);
 
     useLayoutEffect(() => {
         const container = scrollContainerRef.current;
         if (!container || posts.length === 0) return;
 
-        // If not yet fully loaded OR near bottom, scroll to bottom
+        // Check if only reactions changed (not new messages)
+        const previousMessages = previousMessagesRef.current;
+        const onlyReactionsChanged =
+            posts.length === previousMessages.length &&
+            posts.every((msg, idx) => {
+                const prev = previousMessages[idx];
+                return prev && msg.id === prev.id && msg.content === prev.content;
+            });
+
+        // If only reactions changed, preserve exact scroll position
+        if (onlyReactionsChanged && previousMessages.length > 0) {
+            previousMessagesRef.current = posts;
+            return; // Don't scroll at all
+        }
+
         const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
         const isNearBottom = distanceFromBottom < 300;
 
-        if (!isInitialLoaded || isNearBottom) {
-            // Scroll to bottom
-            if (scrollContainerRef.current) {
-                // Use smooth scrolling for better UX, but instant for the very first load
-                scrollContainerRef.current.scrollTo({
-                    top: scrollContainerRef.current.scrollHeight,
-                    behavior: isInitialLoaded ? 'smooth' : 'instant'
-                });
+        // SCROLL ANCHORING: If we prepended messages (messages length increased but not near bottom)
+        const isPrepend = posts.length > previousMessages.length && !isNearBottom && isInitialLoaded;
+
+        if (isPrepend) {
+            // Anchor to the previous top message
+            const newScrollHeight = container.scrollHeight;
+            const heightDiff = newScrollHeight - prevScrollHeightRef.current;
+            if (heightDiff > 0) {
+                container.scrollTop += heightDiff;
             }
+        } else if (!isInitialLoaded || isNearBottom) {
+            container.scrollTop = container.scrollHeight;
 
             // Debounce the "loaded" state
-            // Every time posts change, we reset the timer.
-            // We only consider "Initial Load" done if no new posts arrive for 1000ms
             if (initialLoadTimeoutRef.current) {
                 clearTimeout(initialLoadTimeoutRef.current);
             }
-
             if (!isInitialLoaded) {
                 initialLoadTimeoutRef.current = setTimeout(() => {
                     setIsInitialLoaded(true);
-                }, 1000); // Wait 1s of silence before declaring "Loaded"
+                }, 1000);
             }
         }
+
+        previousMessagesRef.current = posts;
+        prevScrollHeightRef.current = container.scrollHeight;
     }, [posts, isInitialLoaded]);
+
+    // Replay handles for when new messages arrive while user is at the bottom
+    useEffect(() => {
+        if (isInitialLoaded) {
+            const container = scrollContainerRef.current;
+            if (container) {
+                const { scrollTop, scrollHeight, clientHeight } = container;
+                // If user is already looking at the bottom, stay at the bottom
+                if (scrollHeight - scrollTop - clientHeight < 150) {
+                    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+                }
+            }
+        }
+    }, [posts.length, isInitialLoaded]);
 
     const handleScroll = () => {
         const container = scrollContainerRef.current;
