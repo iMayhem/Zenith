@@ -35,7 +35,8 @@ const EmojiPicker = dynamic(() => import('emoji-picker-react'), { ssr: false });
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePresence } from '@/features/study/context/PresenceContext';
 import { api } from '@/lib/api';
-import { Journal, Post, Reaction, GiphyResult } from '../types';
+import { Journal, Post, Reaction } from '../types';
+import { TenorResult } from '@/lib/api-types';
 import { FormattedMessage } from '@/components/chat/FormattedMessage';
 import { MessageActions } from '@/components/chat/MessageActions';
 import { MentionMenu } from '@/components/chat/MentionMenu';
@@ -72,7 +73,7 @@ export const JournalChat: React.FC<JournalChatProps> = ({
     const [showScrollButton, setShowScrollButton] = useState(false);
     const [mentionQuery, setMentionQuery] = useState<string | null>(null);
     const [mentionIndex, setMentionIndex] = useState(0);
-    const [gifs, setGifs] = useState<GiphyResult[]>([]);
+    const [gifs, setGifs] = useState<TenorResult[]>([]);
     const [gifSearch, setGifSearch] = useState("");
     const [loadingGifs, setLoadingGifs] = useState(false);
 
@@ -410,7 +411,7 @@ export const JournalChat: React.FC<JournalChatProps> = ({
         } catch (e) { console.error(e); }
     };
 
-    const fetchGifs = async (query: string = "") => { setLoadingGifs(true); try { const data = await (query ? api.giphy.search(query) : api.giphy.trending()); setGifs((data as any)?.data || data || []); } catch (error) { console.error(error); } finally { setLoadingGifs(false); } };
+    const fetchGifs = async (query: string = "") => { setLoadingGifs(true); try { const data = await (query ? api.tenor.search(query) : api.tenor.trending()); setGifs((data as any)?.results || data || []); } catch (error) { console.error(error); } finally { setLoadingGifs(false); } };
 
     const handleSendGif = async (url: string) => {
         if (!activeJournal || !username) return;
@@ -630,9 +631,9 @@ export const JournalChat: React.FC<JournalChatProps> = ({
                             <div
                                 key={post.id}
                                 id={`journal-post-${post.id}`}
-                                className={`group relative flex gap-4 pr-2 hover:bg-white/[0.04] -mx-4 px-4 transition-colors ${showHeader ? 'mt-6' : 'mt-0.5 py-0.5'}`}
+                                className={`group relative flex items-start gap-4 pr-2 hover:bg-white/[0.04] -mx-4 px-4 py-[2px] transition-colors ${showHeader ? 'mt-4' : 'mt-0'}`}
                             >
-                                <div className="w-10 shrink-0 select-none pt-0.5">
+                                <div className="w-10 shrink-0 select-none pt-0.5 flex flex-col items-center">
                                     {showHeader ? (<UserAvatar username={post.username} className="w-10 h-10 hover:opacity-90 cursor-pointer" />) : (<div className="w-10 text-[10px] text-white/20 text-center opacity-0 group-hover:opacity-100 mt-1 select-none">{new Date(post.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}</div>)}
                                 </div>
 
@@ -717,16 +718,18 @@ export const JournalChat: React.FC<JournalChatProps> = ({
                                     )}
                                 </div>
 
-                                <MessageActions
-                                    isCurrentUser={post.username === username}
-                                    isModerator={isMod(username)}
-                                    onReact={(emoji) => handleReact(post.id, emoji)}
-                                    onReply={() => handleReply(post)}
-                                    onDelete={() => handleDeletePost(post.id)}
-                                    onReport={() => handleReportMessage(post)}
-                                    isOpen={openReactionPopoverId === post.id}
-                                    onOpenChange={(open) => setOpenReactionPopoverId(open ? post.id : null)}
-                                />
+                                <div className="opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity shrink-0 -mt-1">
+                                    <MessageActions
+                                        isCurrentUser={post.username === username}
+                                        isModerator={isMod(username)}
+                                        onReact={(emoji) => handleReact(post.id, emoji)}
+                                        onReply={() => handleReply(post)}
+                                        onDelete={() => handleDeletePost(post.id)}
+                                        onReport={() => handleReportMessage(post)}
+                                        isOpen={openReactionPopoverId === post.id}
+                                        onOpenChange={(open) => setOpenReactionPopoverId(open ? post.id : null)}
+                                    />
+                                </div>
                             </div>
                         );
                     })}
@@ -781,7 +784,7 @@ export const JournalChat: React.FC<JournalChatProps> = ({
                                 </div>
                                 <div className="h-60 overflow-y-auto no-scrollbar grid grid-cols-2 gap-1">
                                     {loadingGifs ? <div className="col-span-2 text-center py-4 text-xs text-white/40">Loading...</div> : gifs.map(gif => (
-                                        <img key={gif.id} src={gif.images.fixed_height.url} className="w-full h-auto object-cover rounded cursor-pointer hover:opacity-80" onClick={() => handleSendGif(gif.images.fixed_height.url)} />
+                                        <img key={gif.id} src={gif.media_formats.tinygif.url} className="w-full h-auto object-cover rounded cursor-pointer hover:opacity-80" onClick={() => handleSendGif(gif.media_formats.tinygif.url)} />
                                     ))}
                                 </div>
                             </div>
