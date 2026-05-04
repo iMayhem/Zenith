@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { QuestionAttempt } from "../_lib/practiceDb";
 import { QuestionData } from "../_lib/storageUtils";
-import { Check, X, CircleDash, Bookmark } from "lucide-react";
+import { Check, X, CircleDashed, Bookmark } from "lucide-react";
 
 interface QuestionNavigatorProps {
   questions: QuestionData[];
@@ -26,13 +26,13 @@ export function QuestionNavigator({
     <div className="flex flex-col w-full h-full bg-card rounded-xl border p-4 shadow-sm">
       <h3 className="font-semibold text-lg mb-4 select-none">Question Navigator</h3>
       
-      <div className="grid grid-cols-5 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 gap-2 flex-1 content-start overflow-y-auto pr-2 pb-4">
+      <div className="grid grid-cols-4 gap-2 flex-1 content-start overflow-y-auto pb-4">
         {questions.map((q, idx) => {
           const attempt = attempts[q.number];
           const isCurrent = idx === currentIndex;
           
           let stateClass = "bg-muted text-muted-foreground border-transparent hover:bg-muted/80";
-          let Icon = CircleDash;
+          let Icon = CircleDashed;
           
           if (attempt) {
             // In Quiz mode or if tracked without validation, we might just show "answered"

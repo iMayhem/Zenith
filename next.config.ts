@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    formats: ['image/webp'],
+    deviceSizes: [640, 828, 1080, 1200],
+    imageSizes: [128, 256, 384],
+    minimumCacheTTL: 86400,
     remotePatterns: [
       {
         protocol: 'https',
@@ -37,6 +41,18 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'pub-cb3ee67ac9934a35a6d7ddc427fbcab6.r2.dev',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.firebasestorage.app',
         port: '',
         pathname: '/**',
       }

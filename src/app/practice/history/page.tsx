@@ -49,7 +49,7 @@ export default function HistoryPage() {
     });
 
     const weakTopics = Object.entries(chaptersAcc)
-       .map(([topic, counts]) => ({ topic, accuracy: counts.total > 0 ? (counts.correct / counts.total) * 100 : 0 }))
+       .map(([topic, counts]) => ({ topic, total: counts.total, accuracy: counts.total > 0 ? (counts.correct / counts.total) * 100 : 0 }))
        .filter(t => t.total !== 0 && t.accuracy < 60)
        .sort((a, b) => a.accuracy - b.accuracy);
 
@@ -134,7 +134,7 @@ export default function HistoryPage() {
                 <h2 className="text-lg font-bold mb-4 px-2">Past Sessions</h2>
                 <div className="flex flex-col gap-3">
                   {sessions.map((s) => (
-                    <div key={s.id || s.startTime} className="bg-card border rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 shadow-sm hover:shadow-md transition group">
+                    <div key={s.id || s.startTime} className="bg-card border rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition group">
                        <div>
                           <div className="flex items-center gap-2 mb-1">
                              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">

@@ -11,9 +11,6 @@ import { QuizTimer } from "../_components/QuizTimer";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext"; // Liorea uses standard auth context - replacing this to firebase direct if needed, but assuming global exists.
-
-// Fallback logic just in case global Auth doesn't exist
 import { auth } from "@/lib/firebase";
 
 function SessionContent() {
@@ -64,11 +61,19 @@ function SessionContent() {
     initSession();
   }, [subject, classVal, chapter, topic]);
 
-  // Preloading next 3 images
+  // Eagerly preload ALL question images on session start
+  useEffect(() => {
+    questions.forEach(q => {
+      const img = new Image();
+      img.src = q.url;
+    });
+  }, [questions]);
+
+  // Additionally preload next 5 images on navigation for priority
   useEffect(() => {
     if (questions.length === 0) return;
     
-    for (let i = currentIndex + 1; i <= Math.min(currentIndex + 3, questions.length - 1); i++) {
+    for (let i = currentIndex + 1; i <= Math.min(currentIndex + 5, questions.length - 1); i++) {
         const img = new Image();
         img.src = questions[i].url;
     }
@@ -150,9 +155,9 @@ function SessionContent() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
+      <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <span className="ml-4 font-medium text-lg">Preparing Practice Session...</span>
+        <span className="font-medium text-lg text-muted-foreground">Preparing Practice Session...</span>
       </div>
     );
   }
@@ -201,7 +206,7 @@ function SessionContent() {
   const currentAnswer = currentQ ? (answers[String(currentQ.number)] || null) : null;
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden bg-background">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
       
       {/* Top Banner */}
       <div className="h-14 border-b flex items-center justify-between px-4 lg:px-6 bg-card shrink-0">
@@ -248,33 +253,40 @@ function SessionContent() {
          </div>
       </div>
 
-      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row p-4 lg:p-6 gap-6">
+      {/* Body: image+controls on left, navigator on right — all viewport-locked */}
+      <div className="flex-1 min-h-0 flex flex-row p-4 lg:p-5 gap-5 overflow-hidden">
           
-          {/* Main Content Area */}
-          <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 pb-20 lg:pb-0">
-             <QuestionViewer 
-                question={currentQ || null}
-                currentIndex={currentIndex}
-                totalQuestions={questions.length}
-                onNext={handleNext}
-                onPrev={handlePrev}
-             />
+          {/* Main Content Area — flex column, fills space, NO outer scroll */}
+          <div className="flex-1 min-w-0 flex flex-col gap-4 overflow-hidden">
+             {/* QuestionViewer takes all remaining height */}
+             <div className="flex-1 min-h-0">
+               <QuestionViewer 
+                  question={currentQ || null}
+                  currentIndex={currentIndex}
+                  totalQuestions={questions.length}
+                  onNext={handleNext}
+                  onPrev={handlePrev}
+               />
+             </div>
              
+             {/* Controls are fixed-height at the bottom */}
              {currentQ && (
-                 <PracticeControls 
-                    questionNumber={currentQ.number}
-                    correctAnswer={currentAnswer}
-                    attempt={attempts[currentQ.number]}
-                    isQuizMode={isQuiz}
-                    onAttemptSubmit={handleAttemptSubmit}
-                    onNextQuestion={handleNext}
-                    isLastQuestion={currentIndex === questions.length - 1}
-                 />
+                 <div className="shrink-0">
+                   <PracticeControls 
+                      questionNumber={currentQ.number}
+                      correctAnswer={currentAnswer}
+                      attempt={attempts[currentQ.number]}
+                      isQuizMode={isQuiz}
+                      onAttemptSubmit={handleAttemptSubmit}
+                      onNextQuestion={handleNext}
+                      isLastQuestion={currentIndex === questions.length - 1}
+                   />
+                 </div>
              )}
           </div>
 
-          {/* Sidebar Area */}
-          <div className="w-full lg:w-[320px] xl:w-[380px] shrink-0 h-[400px] lg:h-full">
+          {/* Sidebar — fixed width, fills height, scrolls internally */}
+          <div className="w-[260px] xl:w-[300px] shrink-0 flex flex-col">
               <QuestionNavigator 
                  questions={questions}
                  currentIndex={currentIndex}
@@ -291,7 +303,12 @@ function SessionContent() {
 
 export default function SessionPage() {
   return (
-    <Suspense fallback={<div className="flex p-10"><Loader2 className="animate-spin h-8 w-8"/></div>}>
+    <Suspense fallback={
+      <div className="flex h-screen w-full items-center justify-center flex-col gap-4 bg-background">
+        <Loader2 className="animate-spin h-10 w-10 text-primary"/>
+        <span className="text-muted-foreground font-medium">Loading...</span>
+      </div>
+    }>
       <SessionContent />
     </Suspense>
   );
