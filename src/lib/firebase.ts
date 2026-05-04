@@ -3,6 +3,7 @@ import { getDatabase } from "firebase/database";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore"; // Added Firestore import
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDsGYist7f2enKCGyHwBwSUw70wM_he1Ao",
@@ -20,6 +21,7 @@ const db = getDatabase(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const firestore = getFirestore(app); // Initialize Firestore
+const storage = getStorage(app);
 
 let analytics;
 if (typeof window !== "undefined") {
@@ -30,4 +32,4 @@ if (typeof window !== "undefined") {
   });
 }
 
-export { db, analytics, auth, googleProvider, firestore }; // Export firestore
+export { db, analytics, auth, googleProvider, firestore, storage }; // Export firestore
