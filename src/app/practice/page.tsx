@@ -12,7 +12,7 @@ export default function PracticeSelectionPage() {
           <div className="inline-flex items-center justify-center p-2.5 bg-primary/10 rounded-full">
             <BookOpen className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight">Practice Arena</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight">Previous Year Questions</h1>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
             Target specific topics and master your exams right away. Your progress is isolated and saved automatically.
           </p>

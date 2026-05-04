@@ -264,7 +264,7 @@ export default function Header() {
                             pathname === '/practice' && 'bg-white/10 text-white'
                         )}>
                             <BookOpen className="w-4 h-4" />
-                            <span>Practice</span>
+                            <span>PYQ</span>
                         </Link>
 
                         <Link href="/journal" className={cn(
@@ -332,7 +332,7 @@ export default function Header() {
                                         pathname === '/practice' && 'bg-white/10 text-white font-medium'
                                     )}>
                                         <BookOpen className="w-5 h-5" />
-                                        Practice
+                                        Previous Year Questions
                                     </Link>
                                     <Link href="/journal" className={cn(
                                         "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",

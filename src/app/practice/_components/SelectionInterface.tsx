@@ -263,7 +263,7 @@ export function SelectionInterface() {
                disabled={!subject || !classVal || !chapterPath || !topicStorageName}
                onClick={handleStartPractice}
              >
-               Start Practice
+               Start Solving
              </Button>
           </div>
         </div>
