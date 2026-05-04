@@ -9,9 +9,10 @@ export interface QuestionData {
 
 /**
  * Fetches available topic folders for a selected Chapter by reading Storage prefixes.
+ * Now takes the full chapter storagePath (e.g. "Physics/Class 11/01 Units and Measurements")
  */
-export const fetchTopics = async (subject: string, classVal: string, chapter: string): Promise<string[]> => {
-  const folderRef = ref(storage, `${subject}/${classVal}/${chapter}`);
+export const fetchTopics = async (chapterStoragePath: string): Promise<string[]> => {
+  const folderRef = ref(storage, chapterStoragePath);
   const res = await listAll(folderRef);
   return res.prefixes.map(p => p.name);
 };
@@ -19,8 +20,8 @@ export const fetchTopics = async (subject: string, classVal: string, chapter: st
 /**
  * Loads all image questions for a specific topic, assigns URLs, and sorts by question number.
  */
-export const fetchQuestions = async (subject: string, classVal: string, chapter: string, topic: string): Promise<QuestionData[]> => {
-  const folderRef = ref(storage, `${subject}/${classVal}/${chapter}/${topic}`);
+export const fetchQuestions = async (chapterStoragePath: string, topic: string): Promise<QuestionData[]> => {
+  const folderRef = ref(storage, `${chapterStoragePath}/${topic}`);
   const res = await listAll(folderRef);
   
   const fetchTasks = res.items.map(async (item) => {
@@ -39,8 +40,8 @@ export const fetchQuestions = async (subject: string, classVal: string, chapter:
 /**
  * Retrieves answers.json mapped by question number locally overriding with cache API
  */
-export const fetchAnswerKey = async (subject: string, classVal: string, chapter: string): Promise<Record<string, string> | null> => {
-  const cacheKey = `answerKey_${subject}_${classVal}_${chapter}`;
+export const fetchAnswerKey = async (chapterStoragePath: string): Promise<Record<string, string> | null> => {
+  const cacheKey = `answerKey_${chapterStoragePath.replace(/\//g, '_')}`;
   
   try {
     // 1. Try hitting local storage cache first
@@ -50,7 +51,7 @@ export const fetchAnswerKey = async (subject: string, classVal: string, chapter:
     }
     
     // 2. Fetch from Firebase
-    const keyRef = ref(storage, `${subject}/${classVal}/${chapter}/answers.json`);
+    const keyRef = ref(storage, `${chapterStoragePath}/answers.json`);
     const buffer = await getBytes(keyRef);
     const decoder = new TextDecoder("utf-8");
     const jsonString = decoder.decode(buffer);
@@ -63,7 +64,7 @@ export const fetchAnswerKey = async (subject: string, classVal: string, chapter:
     return parsed;
     
   } catch (error) {
-    console.error(`Failed to fetch answer key for ${chapter}:`, error);
+    console.error(`Failed to fetch answer key for ${chapterStoragePath}:`, error);
     return null; // Graceful degradation for chapters without an answers.json file
   }
 };

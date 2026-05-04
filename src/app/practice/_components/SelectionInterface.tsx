@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { PRACTICE_STRUCTURE, Subject, ClassLevel } from "../_lib/constants";
-import { fetchTopics } from "../_lib/storageUtils";
+import { getSubjects, getClasses, getChapters, getTopics, ChapterEntry, TopicEntry } from "../_lib/curriculumDb";
+import { syncStorageTopicsToFirestore } from "../_lib/syncTopics";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,135 +17,190 @@ import { Loader2 } from "lucide-react";
 
 export function SelectionInterface() {
   const router = useRouter();
-  const [subject, setSubject] = useState<Subject | "">("");
-  const [classVal, setClassVal] = useState<ClassLevel | "">("");
-  const [chapter, setChapter] = useState<string>("");
-  const [topic, setTopic] = useState<string>("");
+
+  // Selected values
+  const [subject, setSubject] = useState<string>("");
+  const [classVal, setClassVal] = useState<string>("");
+  const [chapterPath, setChapterPath] = useState<string>(""); // We now map the selected 'storagePath'
+  const [topicStorageName, setTopicStorageName] = useState<string>("");
   
+  // Quiz Options
   const [isQuizMode, setIsQuizMode] = useState(false);
-  const [timeLimit, setTimeLimit] = useState<number>(30); // minutes
+  const [timeLimit, setTimeLimit] = useState<number>(30);
   
-  const [availableChapters, setAvailableChapters] = useState<string[]>([]);
-  const [availableTopics, setAvailableTopics] = useState<string[]>([]);
+  // Available Data
+  const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
+  const [availableClasses, setAvailableClasses] = useState<string[]>([]);
+  const [availableChapters, setAvailableChapters] = useState<ChapterEntry[]>([]);
+  const [availableTopics, setAvailableTopics] = useState<TopicEntry[]>([]);
   
+  // Loading states
+  const [isLoadingInit, setIsLoadingInit] = useState(true);
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+  const [isLoadingChapters, setIsLoadingChapters] = useState(false);
   const [isLoadingTopics, setIsLoadingTopics] = useState(false);
+
+  // Errors
   const [topicError, setTopicError] = useState<string | null>(null);
 
-  // Update chapters when subject or class changes
+  // 1. Initial Load: Fetch Subjects
   useEffect(() => {
-    if (subject && classVal) {
-      const chapters = [...(PRACTICE_STRUCTURE[subject]?.[classVal] || [])];
-      setAvailableChapters(chapters);
-      setChapter("");
-      setTopic("");
-      setAvailableTopics([]);
+    async function loadInit() {
+      try {
+        const subs = await getSubjects();
+        setAvailableSubjects(subs);
+      } catch (err) {
+        console.error("Failed to load subjects:", err);
+      } finally {
+        setIsLoadingInit(false);
+      }
     }
+    loadInit();
+  }, []);
+
+  // 2. Fetch Classes when Subject changes
+  useEffect(() => {
+    async function loadClasses() {
+      if (!subject) return;
+      setIsLoadingClasses(true);
+      try {
+        const cls = await getClasses(subject);
+        setAvailableClasses(cls);
+        setClassVal("");
+        setChapterPath("");
+        setTopicStorageName("");
+      } finally {
+        setIsLoadingClasses(false);
+      }
+    }
+    loadClasses();
+  }, [subject]);
+
+  // 3. Fetch Chapters when Class changes
+  useEffect(() => {
+    async function loadChapters() {
+      if (!subject || !classVal) return;
+      setIsLoadingChapters(true);
+      try {
+        const chapters = await getChapters(subject, classVal);
+        setAvailableChapters(chapters);
+        setChapterPath("");
+        setTopicStorageName("");
+      } finally {
+        setIsLoadingChapters(false);
+      }
+    }
+    loadChapters();
   }, [subject, classVal]);
 
-  // Update topics when chapter changes
+  // 4. Fetch Topics when Chapter changes (now strictly from Firestore mapping)
   useEffect(() => {
     async function loadTopics() {
-      if (!subject || !classVal || !chapter) return;
-      
+      if (!chapterPath || !subject || !classVal) return;
       setIsLoadingTopics(true);
       setTopicError(null);
-      setTopic(""); // reset topic
+      setTopicStorageName("");
       setAvailableTopics([]);
 
       try {
-        const topics = await fetchTopics(subject, classVal, chapter);
-        if (topics.length === 0) {
-          setTopicError("No topics available for this chapter.");
-        } else {
-          setAvailableTopics(topics);
-        }
+        const mappedTopics = await getTopics(subject, classVal, chapterPath);
+        if (mappedTopics.length === 0) setTopicError("No topics mapped. Run sync first.");
+        else setAvailableTopics(mappedTopics);
       } catch (err) {
         console.error("Failed to load topics:", err);
-        setTopicError("Failed to fetch topics from database. Check connection.");
+        setTopicError("Failed to fetch topics.");
       } finally {
         setIsLoadingTopics(false);
       }
     }
-    
     loadTopics();
-  }, [subject, classVal, chapter]);
+  }, [chapterPath, subject, classVal]);
 
   const handleStartPractice = () => {
-    if (!subject || !classVal || !chapter || !topic) return;
+    if (!subject || !classVal || !chapterPath || !topicStorageName) return;
     
     const params = new URLSearchParams({
       subject,
       classVal,
-      chapter,
-      topic,
+      chapterPath,
+      topic: topicStorageName, // We pass the raw storageName to the session!
       ...(isQuizMode ? { isQuiz: "true", timeLimit: timeLimit.toString() } : {})
     });
     
     router.push(`/practice/session?${params.toString()}`);
   };
 
+  if (isLoadingInit) {
+    return (
+      <div className="flex justify-center p-10 h-64 items-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4 max-w-5xl w-full mx-auto p-6 border rounded-xl shadow-sm bg-card text-card-foreground text-left">
       <div className="grid grid-cols-12 gap-6">
         
-        {/* Subject Selection */}
+        {/* Subject */}
         <div className="col-span-2 space-y-2">
           <Label htmlFor="subject" className="pl-1">Subject</Label>
-          <Select value={subject} onValueChange={(val: Subject) => setSubject(val)}>
+          <Select value={subject} onValueChange={setSubject}>
             <SelectTrigger id="subject">
               <SelectValue placeholder="Select Subject" />
             </SelectTrigger>
-            <SelectContent>
-              {Object.keys(PRACTICE_STRUCTURE).map((sub) => (
+            <SelectContent className="max-h-[300px] overflow-y-auto">
+              {availableSubjects.map((sub) => (
                 <SelectItem key={sub} value={sub}>{sub}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Class Selection */}
-        <div className="col-span-2 space-y-2">
+        {/* Class */}
+        <div className="col-span-2 space-y-2 relative">
           <Label htmlFor="classVal" className="pl-1">Class</Label>
-          <Select value={classVal} onValueChange={(val: ClassLevel) => setClassVal(val)} disabled={!subject}>
+          <Select value={classVal} onValueChange={setClassVal} disabled={!subject || isLoadingClasses}>
             <SelectTrigger id="classVal">
-              <SelectValue placeholder="Select Class" />
+              <SelectValue placeholder={isLoadingClasses ? "..." : "Select Class"} />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Class 11">Class 11</SelectItem>
-              <SelectItem value="Class 12">Class 12</SelectItem>
+            <SelectContent className="max-h-[300px] overflow-y-auto">
+              {availableClasses.map((cls) => (
+                <SelectItem key={cls} value={cls}>{cls}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Chapter Selection */}
-        <div className="col-span-4 space-y-2">
+        {/* Chapter */}
+        <div className="col-span-4 space-y-2 relative">
           <Label htmlFor="chapter" className="pl-1">Chapter</Label>
-          <Select value={chapter} onValueChange={setChapter} disabled={!subject || !classVal || availableChapters.length === 0}>
+          <Select value={chapterPath} onValueChange={setChapterPath} disabled={!classVal || isLoadingChapters || availableChapters.length === 0}>
             <SelectTrigger id="chapter">
-              <SelectValue placeholder="Select Chapter" />
+              <SelectValue placeholder={isLoadingChapters ? "Loading..." : "Select Chapter"} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-[300px] overflow-y-auto">
               {availableChapters.map((chap) => (
-                <SelectItem key={chap} value={chap}>
-                  {chap.replace(/^\d+\s/, "")} {/* Shows without the number format gracefully */}
+                <SelectItem key={chap.storagePath} value={chap.storagePath}>
+                  {chap.displayName}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Topic Selection */}
+        {/* Topic */}
         <div className="col-span-4 space-y-2">
           <Label htmlFor="topic" className="pl-1">Topic</Label>
           
           <div className="relative w-full">
-            <Select value={topic} onValueChange={setTopic} disabled={!chapter || isLoadingTopics || availableTopics.length === 0}>
+            <Select value={topicStorageName} onValueChange={setTopicStorageName} disabled={!chapterPath || isLoadingTopics || availableTopics.length === 0}>
               <SelectTrigger id="topic">
                 <SelectValue placeholder={isLoadingTopics ? "Loading topics..." : "Select Topic"} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[300px] overflow-y-auto">
                 {availableTopics.map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                  <SelectItem key={t.storageName} value={t.storageName}>{t.displayName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -161,7 +216,7 @@ export function SelectionInterface() {
           )}
         </div>
 
-        {/* Practice Mode Toggle */}
+        {/* Practice Mode Options */}
         <div className="col-span-12 pt-5 mt-2 border-t flex items-start gap-12">
           <div className="space-y-4">
             <Label className="pl-1">Practice Mode Options</Label>
@@ -201,11 +256,11 @@ export function SelectionInterface() {
             )}
           </div>
           
-          <div className="ml-auto mt-auto mb-1">
+          <div className="ml-auto mt-auto mb-1 flex items-center gap-4">
              <Button 
                className="w-[200px]" 
                size="lg" 
-               disabled={!subject || !classVal || !chapter || !topic}
+               disabled={!subject || !classVal || !chapterPath || !topicStorageName}
                onClick={handleStartPractice}
              >
                Start Practice

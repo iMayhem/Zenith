@@ -19,7 +19,7 @@ function SessionContent() {
   
   const subject = searchParams.get("subject") || "";
   const classVal = searchParams.get("classVal") || "";
-  const chapter = searchParams.get("chapter") || "";
+  const chapterPath = searchParams.get("chapterPath") || "";
   const topic = searchParams.get("topic") || "";
   
   const isQuiz = searchParams.get("isQuiz") === "true";
@@ -39,12 +39,12 @@ function SessionContent() {
 
   useEffect(() => {
     async function initSession() {
-      if (!subject || !classVal || !chapter || !topic) return;
+      if (!subject || !classVal || !chapterPath || !topic) return;
       
       try {
         const [fetchedQ, fetchedA] = await Promise.all([
-          fetchQuestions(subject, classVal, chapter, topic),
-          fetchAnswerKey(subject, classVal, chapter)
+          fetchQuestions(chapterPath, topic),
+          fetchAnswerKey(chapterPath)
         ]);
         
         setQuestions(fetchedQ);
@@ -59,7 +59,7 @@ function SessionContent() {
     }
     
     initSession();
-  }, [subject, classVal, chapter, topic]);
+  }, [subject, classVal, chapterPath, topic]);
 
   // Eagerly preload ALL question images on session start
   useEffect(() => {
@@ -133,7 +133,7 @@ function SessionContent() {
         
         const session: PracticeSession = {
            userId: user.uid,
-           subject, classVal, chapter, topic,
+           subject, classVal, chapter: chapterPath.split('/').pop() || chapterPath, topic,
            startTime: sessionStartTime,
            endTime: Date.now(),
            totalQuestions: questions.length,

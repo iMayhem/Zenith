@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Users, Timer, Activity, Send, Loader2, LayoutDashboard, FlaskConical, ShoppingBag, Bug } from 'lucide-react';
+import { Users, Timer, Activity, Send, Loader2, LayoutDashboard, FlaskConical, ShoppingBag, Bug, RefreshCw } from 'lucide-react';
 import { Textarea } from '../ui/textarea';
 import { Button } from '../ui/button';
 import { useState, useEffect } from 'react';
@@ -15,10 +15,12 @@ import { usePresence } from '@/features/study';
 // Placeholder components for new tabs
 import UserManagement from './UserManagement';
 import FeedbackManagement from './FeedbackManagement';
+import { syncStorageTopicsToFirestore } from '@/app/practice/_lib/syncTopics';
 
 export default function AdminDashboard() {
     const [notificationMessage, setNotificationMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
     const { toast } = useToast();
     const { addNotification } = useNotifications();
     const { studyUsers } = usePresence(); // Real-time active users
@@ -146,6 +148,35 @@ export default function AdminDashboard() {
                             >
                                 {isSending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                 {isSending ? "Sending..." : "Broadcast Message"}
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    {/* Curriculum Management */}
+                    <Card className="bg-[#1e1f22]/50 border-zinc-800 mt-6">
+                        <CardHeader>
+                            <CardTitle>Curriculum Management</CardTitle>
+                            <CardDescription>Sync Practice Topics from Firebase Storage to the Firestore curriculum mapping.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button
+                                variant="outline"
+                                onClick={async () => {
+                                    setIsSyncing(true);
+                                    try {
+                                        await syncStorageTopicsToFirestore();
+                                        toast({ title: "Topics Synced!", description: "Curriculum mapping updated successfully." });
+                                    } catch (err) {
+                                        toast({ variant: "destructive", title: "Sync Failed", description: "Could not sync topics." });
+                                    } finally {
+                                        setIsSyncing(false);
+                                    }
+                                }}
+                                disabled={isSyncing}
+                                className="bg-zinc-800 text-white border-zinc-700 hover:bg-zinc-700 hover:text-white"
+                            >
+                                {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                                {isSyncing ? "Syncing..." : "Sync Storage Topics to DB"}
                             </Button>
                         </CardContent>
                     </Card>
