@@ -258,13 +258,13 @@ export default function Header() {
                             <span>Study Room</span>
                         </Link>
                         
-                        <Link href="/practice" className={cn(
+                        <Link href="/resources" className={cn(
                             "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
                             'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
-                            pathname === '/practice' && 'bg-white/10 text-white'
+                            pathname.startsWith('/resources') && 'bg-white/10 text-white'
                         )}>
                             <BookOpen className="w-4 h-4" />
-                            <span>PYQ</span>
+                            <span>Resources</span>
                         </Link>
 
                         <Link href="/journal" className={cn(
@@ -326,13 +326,13 @@ export default function Header() {
                                         <Sparkles className="w-5 h-5" />
                                         Study Room
                                     </Link>
-                                    <Link href="/practice" className={cn(
+                                    <Link href="/resources" className={cn(
                                         "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",
                                         'text-white/80 hover:text-white hover:bg-white/10',
-                                        pathname === '/practice' && 'bg-white/10 text-white font-medium'
+                                        pathname.startsWith('/resources') && 'bg-white/10 text-white font-medium'
                                     )}>
                                         <BookOpen className="w-5 h-5" />
-                                        Previous Year Questions
+                                        Resources
                                     </Link>
                                     <Link href="/journal" className={cn(
                                         "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",

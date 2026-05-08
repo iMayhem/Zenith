@@ -2,6 +2,25 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  async redirects() {
+    return [
+      {
+        source: '/practice',
+        destination: '/resources',
+        permanent: true,
+      },
+      {
+        source: '/practice/session',
+        destination: '/resources',
+        permanent: true,
+      },
+      {
+        source: '/practice/history',
+        destination: '/resources',
+        permanent: true,
+      },
+    ];
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
