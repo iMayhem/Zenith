@@ -1,19 +1,10 @@
-export type InstituteId = 'ALLEN' | 'AAKASH' | 'PHYSICS_WALLAH' | 'CAREER_WILL';
-
-export interface InstituteOption {
-  id: InstituteId;
-  label: string; // Display label, e.g. "Physics Wallah"
-}
-
-export interface ResourceModule {
-  id: string; // Firestore document ID
-  institute: InstituteId;
-  subject: string;
-  displayName: string;
-  pdfUrl: string;
-  sortOrder: number;
-  chapterName?: string;
-  topicName?: string;
+export interface ResourceNode {
+  id: string;
+  type: 'folder' | 'file';
+  name: string;
+  parentId: string | null; // null represents the root directory
+  pdfUrl?: string; // Only present if type === 'file'
+  createdAt: number;
 }
 
 export type FetchState = 'idle' | 'loading' | 'success' | 'error';

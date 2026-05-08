@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, DownloadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { ResourceModule } from "../_lib/types";
+import type { ResourceNode } from "../_lib/types";
 
 interface PdfViewerProps {
-  module: ResourceModule;
+  module: ResourceNode;
   onClose: () => void;
 }
 
@@ -15,42 +15,70 @@ type ViewerState = "loading" | "loaded" | "error" | "timeout";
 export function PdfViewer({ module, onClose }: PdfViewerProps) {
   const [viewerState, setViewerState] = useState<ViewerState>("loading");
   const [retryKey, setRetryKey] = useState(0);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [pdfSource, setPdfSource] = useState<string | null>(null);
+  const [isCached, setIsCached] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    // Reset to loading state on each retry (retryKey change)
+    let isMounted = true;
+    let objectUrl: string | null = null;
+    
     setViewerState("loading");
-    console.log('📄 PdfViewer: Loading PDF:', module.displayName);
-    console.log('📄 PdfViewer: PDF URL:', module.pdfUrl);
+    setPdfSource(null);
 
-    // Set a shorter timeout to auto-mark as loaded if iframe doesn't fire onLoad
-    // PDFs in iframes often don't trigger onLoad reliably
-    timeoutRef.current = setTimeout(() => {
-      console.log('⏱️ PdfViewer: Auto-marking as loaded (iframe onLoad may not fire for PDFs)');
-      setViewerState("loaded");
-    }, 3_000); // 3 seconds - if iframe hasn't errored by then, assume it's loading
+    const pdfUrl = module.pdfUrl!;
+
+    async function loadPdf() {
+      try {
+        console.log('📄 PdfViewer: Checking cache for PDF:', module.name);
+        const cache = await caches.open('zenith-pdf-cache');
+        let response = await cache.match(pdfUrl);
+        
+        if (response) {
+          console.log('✅ PdfViewer: Found in cache, instant load!');
+          if (isMounted) setIsCached(true);
+        } else {
+          console.log('☁️ PdfViewer: Not in cache, downloading and caching...');
+          response = await fetch(pdfUrl);
+          if (response.ok) {
+            // Clone the response so we can both put it in cache and read it
+            await cache.put(pdfUrl, response.clone());
+            console.log('✅ PdfViewer: Cached successfully for future use.');
+          } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+        }
+        
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+        
+        if (isMounted) {
+          setPdfSource(objectUrl);
+          setViewerState("loaded");
+        }
+      } catch (e) {
+        console.error('❌ PdfViewer: Failed to load PDF via Cache API', e);
+        // Fallback to direct URL if fetch/cache fails (e.g. CORS issues)
+        if (isMounted) {
+          console.log('⚠️ PdfViewer: Falling back to direct URL loading');
+          setPdfSource(pdfUrl);
+          setViewerState("loaded");
+        }
+      }
+    }
+
+    loadPdf();
 
     return () => {
-      if (timeoutRef.current !== null) {
-        clearTimeout(timeoutRef.current);
+      isMounted = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [retryKey, module]);
-
-  function handleLoad() {
-    console.log('✅ PdfViewer: PDF loaded successfully');
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-    }
-    setViewerState("loaded");
-  }
+  }, [retryKey, module.pdfUrl, module.name]);
 
   function handleError(e: React.SyntheticEvent<HTMLIFrameElement, Event>) {
-    console.error('❌ PdfViewer: Failed to load PDF', e);
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-    }
+    console.error('❌ PdfViewer: iframe failed to load PDF', e);
     setViewerState("error");
   }
 
@@ -58,10 +86,8 @@ export function PdfViewer({ module, onClose }: PdfViewerProps) {
     setRetryKey((k) => k + 1);
   }
 
-  const showIframe = viewerState !== "error" && viewerState !== "timeout";
-
   function handleOpenInNewTab() {
-    window.open(module.pdfUrl, '_blank');
+    if (module.pdfUrl) window.open(module.pdfUrl, '_blank');
   }
 
   return (
@@ -77,8 +103,9 @@ export function PdfViewer({ module, onClose }: PdfViewerProps) {
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
-        <h1 className="text-sm font-medium text-white truncate">
-          {module.displayName}
+        <h1 className="text-sm font-medium text-white truncate flex items-center gap-2">
+          {module.name}
+          {isCached && <span className="text-[10px] uppercase tracking-wider bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full flex items-center gap-1"><DownloadCloud className="w-3 h-3"/> Cached</span>}
         </h1>
         <Button
           variant="ghost"
@@ -92,16 +119,15 @@ export function PdfViewer({ module, onClose }: PdfViewerProps) {
 
       {/* Content area */}
       <div className="relative flex flex-col flex-1 overflow-hidden">
-        {/* iframe — hidden when in error/timeout state */}
-        {showIframe && (
+        {/* iframe */}
+        {pdfSource && viewerState !== "error" && (
           <iframe
             ref={iframeRef}
             key={retryKey}
-            src={module.pdfUrl}
-            title={module.displayName}
+            src={pdfSource}
+            title={module.name}
             className="w-full flex-1 border-0"
             style={{ height: 'calc(100vh - 60px)' }}
-            onLoad={handleLoad}
             onError={handleError}
             allow="fullscreen"
           />
@@ -109,18 +135,17 @@ export function PdfViewer({ module, onClose }: PdfViewerProps) {
 
         {/* Loading spinner overlay */}
         {viewerState === "loading" && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-            <Loader2 className="w-8 h-8 animate-spin text-white/60" />
+          <div className="absolute inset-0 flex flex-col gap-4 items-center justify-center bg-background/80">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-400" />
+            <p className="text-zinc-400 text-sm animate-pulse">Loading PDF... This might take a moment.</p>
           </div>
         )}
 
-        {/* Error / timeout state */}
-        {(viewerState === "error" || viewerState === "timeout") && (
+        {/* Error state */}
+        {viewerState === "error" && (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
             <p className="text-white/70 text-sm">
-              {viewerState === "timeout"
-                ? "The PDF took too long to load. Please try again."
-                : "Failed to load the PDF. Please try again."}
+              Failed to load the PDF. Please try again.
             </p>
             <div className="flex gap-3">
               <Button

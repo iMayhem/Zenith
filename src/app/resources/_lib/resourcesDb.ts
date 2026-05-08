@@ -6,40 +6,23 @@ import {
   orderBy,
   getDocs,
 } from 'firebase/firestore';
-import type { InstituteId, ResourceModule } from './types';
+import type { ResourceNode } from './types';
 
 /**
- * Returns distinct subject names for a given institute.
- * Fetches all matching docs and deduplicates client-side
- * (avoids needing a separate subjects sub-collection).
+ * Fetches all child nodes for a given parent directory.
+ * @param parentId The ID of the parent folder, or null for the root directory.
  */
-export async function getSubjects(institute: InstituteId): Promise<string[]> {
+export async function getNodes(parentId: string | null): Promise<ResourceNode[]> {
   const q = query(
-    collection(firestore, 'resources'),
-    where('institute', '==', institute)
+    collection(firestore, 'resourceNodes'),
+    where('parentId', '==', parentId),
+    orderBy('type', 'desc'), // 'folder' > 'file', so folders appear first
+    orderBy('createdAt', 'desc')
   );
-  const snap = await getDocs(q);
-  const subjects = new Set<string>();
-  snap.forEach(doc => subjects.add(doc.data().subject as string));
-  return Array.from(subjects).sort();
-}
 
-/**
- * Returns all modules for a given institute + subject, ordered by sortOrder.
- */
-export async function getModules(
-  institute: InstituteId,
-  subject: string
-): Promise<ResourceModule[]> {
-  const q = query(
-    collection(firestore, 'resources'),
-    where('institute', '==', institute),
-    where('subject', '==', subject),
-    orderBy('sortOrder', 'asc')
-  );
   const snap = await getDocs(q);
   return snap.docs.map(doc => ({
     id: doc.id,
-    ...(doc.data() as Omit<ResourceModule, 'id'>),
+    ...(doc.data() as Omit<ResourceNode, 'id'>),
   }));
 }

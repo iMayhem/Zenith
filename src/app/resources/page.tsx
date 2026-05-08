@@ -1,122 +1,102 @@
 'use client';
 
-import { useState } from 'react';
-import { BookOpen } from 'lucide-react';
-import { InstituteSelector } from './_components/InstituteSelector';
-import { SubjectList } from './_components/SubjectList';
-import { ModuleList } from './_components/ModuleList';
+import { useState, useEffect } from 'react';
+import { BookOpen, Folder, FileText, ChevronRight, Home, Loader2 } from 'lucide-react';
 import { PdfViewer } from './_components/PdfViewer';
-import { getSubjects, getModules } from './_lib/resourcesDb';
-import type { InstituteId, ResourceModule, FetchState } from './_lib/types';
+import { getNodes } from './_lib/resourcesDb';
+import type { ResourceNode } from './_lib/types';
 
 export default function ResourcesPage() {
-  const [selectedInstitute, setSelectedInstitute] = useState<InstituteId | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [activeModule, setActiveModule] = useState<ResourceModule | null>(null);
+  const [currentFolder, setCurrentFolder] = useState<{ id: string | null; name: string }>({ id: null, name: "Home" });
+  const [path, setPath] = useState<{ id: string | null; name: string }[]>([{ id: null, name: "Home" }]);
+  const [nodes, setNodes] = useState<ResourceNode[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [subjects, setSubjects] = useState<string[]>([]);
-  const [modules, setModules] = useState<ResourceModule[]>([]);
+  const [activeFile, setActiveFile] = useState<ResourceNode | null>(null);
 
-  const [subjectFetch, setSubjectFetch] = useState<FetchState>('idle');
-  const [moduleFetch, setModuleFetch] = useState<FetchState>('idle');
+  useEffect(() => {
+    setLoading(true);
+    getNodes(currentFolder.id)
+      .then(setNodes)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [currentFolder.id]);
 
-  async function handleInstituteSelect(institute: InstituteId) {
-    setSelectedInstitute(institute);
-    setSelectedSubject(null);
-    setActiveModule(null);
-    setModules([]);
-    setSubjectFetch('loading');
-    try {
-      const data = await getSubjects(institute);
-      console.log('✅ Subjects loaded:', data);
-      setSubjects(data);
-      setSubjectFetch('success');
-    } catch (err) {
-      console.error('❌ Failed to load subjects:', err);
-      setSubjectFetch('error');
+  const handleNavigate = (folderId: string | null, folderName: string) => {
+    if (folderId === null) {
+      setPath([{ id: null, name: "Home" }]);
+    } else {
+      const existingIdx = path.findIndex(p => p.id === folderId);
+      if (existingIdx >= 0) {
+        setPath(path.slice(0, existingIdx + 1));
+      } else {
+        setPath([...path, { id: folderId, name: folderName }]);
+      }
     }
-  }
+    setCurrentFolder({ id: folderId, name: folderName });
+  };
 
-  async function handleSubjectSelect(subject: string) {
-    setSelectedSubject(subject);
-    setActiveModule(null);
-    setModuleFetch('loading');
-    try {
-      const data = await getModules(selectedInstitute!, subject);
-      console.log('✅ Modules loaded:', data);
-      setModules(data);
-      setModuleFetch('success');
-    } catch (err) {
-      console.error('❌ Failed to load modules:', err);
-      setModuleFetch('error');
-    }
-  }
-
-  // PDF viewer takes over the full screen
-  if (activeModule !== null) {
+  if (activeFile !== null) {
     return (
       <PdfViewer
-        module={activeModule}
-        onClose={() => setActiveModule(null)}
+        module={activeFile}
+        onClose={() => setActiveFile(null)}
       />
     );
   }
 
   return (
-    <div className="h-full w-full overflow-y-auto">
-      <div className="max-w-5xl mx-auto px-4 py-6 flex flex-col gap-6">
-        {/* Page header */}
+    <div className="h-full w-full overflow-y-auto pb-20">
+      <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-6">
         <div className="flex items-center gap-3">
-          <div className="inline-flex items-center justify-center p-2 bg-white/10 rounded-lg">
-            <BookOpen className="h-5 w-5 text-white" />
+          <div className="inline-flex items-center justify-center p-2 bg-indigo-500/10 rounded-lg">
+            <BookOpen className="h-6 w-6 text-indigo-400" />
           </div>
-          <h1 className="text-xl font-semibold text-white tracking-tight">Resources</h1>
+          <h1 className="text-2xl font-bold text-white tracking-tight">Resources Library</h1>
         </div>
 
-        {/* Institute selector — always visible */}
-        <section>
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-white/40">
-            Select Institute
-          </p>
-          <InstituteSelector
-            selected={selectedInstitute}
-            onSelect={handleInstituteSelect}
-          />
-        </section>
+        {/* Breadcrumbs */}
+        <div className="flex items-center gap-2 p-3 bg-white/5 rounded-xl overflow-x-auto border border-white/10 shadow-inner">
+          <button onClick={() => handleNavigate(null, "Home")} className="text-zinc-400 hover:text-white flex items-center shrink-0 transition-colors">
+            <Home className="w-4 h-4" />
+          </button>
+          {path.slice(1).map((crumb, idx) => (
+            <div key={crumb.id || idx} className="flex items-center gap-2 shrink-0">
+              <ChevronRight className="w-4 h-4 text-zinc-600" />
+              <button onClick={() => handleNavigate(crumb.id, crumb.name)} className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                {crumb.name}
+              </button>
+            </div>
+          ))}
+        </div>
 
-        {/* Two-column layout on desktop once an institute is selected */}
-        {selectedInstitute !== null && (
-          <div className="flex flex-col gap-6 md:flex-row md:gap-6">
-            {/* Subjects sidebar */}
-            <aside className="w-full md:w-48 shrink-0">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-white/40">
-                Subject
-              </p>
-              <SubjectList
-                subjects={subjects}
-                selected={selectedSubject}
-                fetchState={subjectFetch}
-                onSelect={handleSubjectSelect}
-                onRetry={() => handleInstituteSelect(selectedInstitute)}
-              />
-            </aside>
-
-            {/* Modules main area */}
-            {selectedSubject !== null && (
-              <main className="flex-1 min-w-0">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-white/40">
-                  Modules
-                </p>
-                <ModuleList
-                  modules={modules}
-                  fetchState={moduleFetch}
-                  onSelect={setActiveModule}
-                  onRetry={() => handleSubjectSelect(selectedSubject)}
-                />
-              </main>
-            )}
-          </div>
-        )}
+        {/* Node Grid */}
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+          {loading ? (
+            <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>
+          ) : nodes.length === 0 ? (
+            <div className="py-20 text-center text-zinc-500 border border-dashed border-white/10 rounded-2xl bg-white/5">
+              This folder is empty. Check back later!
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {nodes.map(node => (
+                <button
+                  key={node.id}
+                  onClick={() => node.type === 'folder' ? handleNavigate(node.id, node.name) : setActiveFile(node)}
+                  className="flex flex-col items-start p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-indigo-500/30 transition-all text-left group gap-3"
+                >
+                  <div className={`p-3 rounded-xl ${node.type === 'folder' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-indigo-500/10 text-indigo-400'}`}>
+                    {node.type === 'folder' ? <Folder className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                  </div>
+                  <span className="font-medium text-zinc-200 group-hover:text-white transition-colors line-clamp-2 leading-tight">
+                    {node.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
