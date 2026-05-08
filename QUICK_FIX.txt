@@ -1,0 +1,108 @@
+═══════════════════════════════════════════════════════════════
+                    PDF VIEWER QUICK FIX
+═══════════════════════════════════════════════════════════════
+
+PROBLEM: Firebase permission errors blocking PDF access
+
+SOLUTION: Update Firebase Security Rules (3 rule sets)
+
+═══════════════════════════════════════════════════════════════
+                    STEP-BY-STEP FIX
+═══════════════════════════════════════════════════════════════
+
+1. Go to Firebase Console: https://console.firebase.google.com
+2. Select project: liorea-life
+
+3. UPDATE FIRESTORE RULES:
+   → Firestore Database → Rules tab
+   → Replace with:
+   
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /{document=**} {
+         allow read, write: if true;
+       }
+     }
+   }
+   
+   → Click "Publish"
+
+4. UPDATE STORAGE RULES:
+   → Storage → Rules tab
+   → Replace with:
+   
+   rules_version = '2';
+   service firebase.storage {
+     match /b/{bucket}/o {
+       match /{allPaths=**} {
+         allow read, write: if true;
+       }
+     }
+   }
+   
+   → Click "Publish"
+
+5. UPDATE REALTIME DATABASE RULES:
+   → Realtime Database → Rules tab
+   → Replace with:
+   
+   {
+     "rules": {
+       ".read": true,
+       ".write": true
+     }
+   }
+   
+   → Click "Publish"
+
+═══════════════════════════════════════════════════════════════
+                    VERIFY THE FIX
+═══════════════════════════════════════════════════════════════
+
+1. Clear browser cache (Ctrl+Shift+R)
+
+2. Test Firebase connection:
+   → Go to: http://localhost:3000/test-firebase
+   → Click "Run All Tests"
+   → Should see ✅ Success for both Firestore and Storage
+
+3. Test PDF viewer:
+   → Go to: http://localhost:3000/resources
+   → Select ALLEN → Physics → Click any module
+   → PDF should display
+
+═══════════════════════════════════════════════════════════════
+                    CONSOLE OUTPUT
+═══════════════════════════════════════════════════════════════
+
+Expected console logs (F12 → Console):
+
+✅ Subjects loaded: ["Physics", "Chemistry", ...]
+✅ Modules loaded: [{...}]
+📄 PdfViewer: Loading PDF: ALLEN PHYSICS JEE Module
+📄 PdfViewer: PDF URL: https://firebasestorage.googleapis.com/...
+✅ PdfViewer: PDF loaded successfully
+
+═══════════════════════════════════════════════════════════════
+                    TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+Still not working?
+
+1. Wait 1-2 minutes after publishing rules
+2. Try incognito mode (Ctrl+Shift+N)
+3. Check all 3 rule sets show "Published" status
+4. See TROUBLESHOOTING.md for detailed help
+
+═══════════════════════════════════════════════════════════════
+                    FILES CREATED
+═══════════════════════════════════════════════════════════════
+
+✓ FIREBASE_RULES_SETUP.md - Detailed rules setup guide
+✓ TROUBLESHOOTING.md - Comprehensive troubleshooting
+✓ FIX_SUMMARY.md - Complete fix documentation
+✓ QUICK_FIX.txt - This file (quick reference)
+✓ src/app/test-firebase/page.tsx - Firebase test page
+
+═══════════════════════════════════════════════════════════════

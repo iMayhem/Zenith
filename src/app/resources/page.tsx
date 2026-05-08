@@ -28,9 +28,11 @@ export default function ResourcesPage() {
     setSubjectFetch('loading');
     try {
       const data = await getSubjects(institute);
+      console.log('✅ Subjects loaded:', data);
       setSubjects(data);
       setSubjectFetch('success');
-    } catch {
+    } catch (err) {
+      console.error('❌ Failed to load subjects:', err);
       setSubjectFetch('error');
     }
   }
@@ -41,9 +43,11 @@ export default function ResourcesPage() {
     setModuleFetch('loading');
     try {
       const data = await getModules(selectedInstitute!, subject);
+      console.log('✅ Modules loaded:', data);
       setModules(data);
       setModuleFetch('success');
-    } catch {
+    } catch (err) {
+      console.error('❌ Failed to load modules:', err);
       setModuleFetch('error');
     }
   }
