@@ -14,7 +14,6 @@ export default function MobileHomePage() {
 
     const reNeetTargetDate = useMemo(() => new Date("2026-06-21T14:00:00"), []);
     const jeeTargetDate = useMemo(() => new Date("2027-01-24T09:00:00"), []);
-    const jeeSession2TargetDate = useMemo(() => new Date("2027-04-05T09:00:00"), []);
     const neetTargetDate = useMemo(() => new Date("2027-05-02T14:00:00"), []);
 
     if (isBackgroundLoading || !username) {
@@ -50,7 +49,6 @@ export default function MobileHomePage() {
                         <h3 className="text-sm font-semibold text-white/80 px-1">Upcoming Exams</h3>
                         <ExamCountdown title="Re-NEET UG 2026" targetDate={reNeetTargetDate} displayDate="21 Jun 26" />
                         <ExamCountdown title="JEE Mains 2027 (Session 1)" targetDate={jeeTargetDate} displayDate="24 Jan 27" />
-                        <ExamCountdown title="JEE Mains 2027 (Session 2)" targetDate={jeeSession2TargetDate} displayDate="5 Apr 27" />
                         <ExamCountdown title="NEET UG 2027" targetDate={neetTargetDate} displayDate="2 May 27" />
                     </div>
                 </div>
