@@ -16,12 +16,10 @@ export default function LioreaClient() {
   const { error, isLoading: isBackgroundLoading } = useBackground();
   const { communityUsers, username } = usePresence();
   const router = useRouter();
-  const currentYear = new Date().getFullYear();
-  const nextYear = currentYear + 1;
-
-  const jeeTargetDate = useMemo(() => new Date(`${currentYear}-01-21T09:00:00`), [currentYear]);
-  const jeeSession2TargetDate = useMemo(() => new Date(`${currentYear}-04-02T09:00:00`), [currentYear]);
-  const neetTargetDate = useMemo(() => new Date(`${currentYear}-05-03T14:00:00`), [currentYear]);
+  const reNeetTargetDate = useMemo(() => new Date("2026-06-21T14:00:00"), []);
+  const jeeTargetDate = useMemo(() => new Date("2027-01-24T09:00:00"), []);
+  const jeeSession2TargetDate = useMemo(() => new Date("2027-04-05T09:00:00"), []);
+  const neetTargetDate = useMemo(() => new Date("2027-05-02T14:00:00"), []);
 
   useEffect(() => {
     // If the background is done loading and we find there's no user, redirect.
@@ -82,10 +80,11 @@ export default function LioreaClient() {
 
 
         {/* Right Column - Exam Timers (Moves to bottom on mobile) */}
-        <div className="flex w-full px-4 md:px-0 md:w-72 flex-col md:pr-4 md:pb-4 md:pt-6 h-auto md:h-full shrink-0 gap-3 order-3">
-          <ExamCountdown title="JEE Mains (Session 1)" targetDate={jeeTargetDate} displayDate="21-30 Jan 26" />
-          <ExamCountdown title="JEE Mains (Session 2)" targetDate={jeeSession2TargetDate} displayDate="2-9 Apr 26" />
-          <ExamCountdown title="NEET UG" targetDate={neetTargetDate} displayDate="3 May 26" />
+        <div className="flex w-full px-4 md:px-0 md:w-72 flex-col md:pr-4 md:pb-4 md:pt-6 h-auto md:h-full shrink-0 gap-3 order-3 md:overflow-y-auto">
+          <ExamCountdown title="Re-NEET UG 2026" targetDate={reNeetTargetDate} displayDate="21 Jun 26" />
+          <ExamCountdown title="JEE Mains 2027 (Session 1)" targetDate={jeeTargetDate} displayDate="24 Jan 27" />
+          <ExamCountdown title="JEE Mains 2027 (Session 2)" targetDate={jeeSession2TargetDate} displayDate="5 Apr 27" />
+          <ExamCountdown title="NEET UG 2027" targetDate={neetTargetDate} displayDate="2 May 27" />
         </div>
 
       </main>

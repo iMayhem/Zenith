@@ -12,10 +12,10 @@ export default function MobileHomePage() {
     const { communityUsers, username } = usePresence();
     const { isLoading: isBackgroundLoading } = useBackground();
 
-    const currentYear = new Date().getFullYear();
-    const jeeTargetDate = useMemo(() => new Date(`${currentYear}-01-21T09:00:00`), [currentYear]);
-    const jeeSession2TargetDate = useMemo(() => new Date(`${currentYear}-04-02T09:00:00`), [currentYear]);
-    const neetTargetDate = useMemo(() => new Date(`${currentYear}-05-03T14:00:00`), [currentYear]);
+    const reNeetTargetDate = useMemo(() => new Date("2026-06-21T14:00:00"), []);
+    const jeeTargetDate = useMemo(() => new Date("2027-01-24T09:00:00"), []);
+    const jeeSession2TargetDate = useMemo(() => new Date("2027-04-05T09:00:00"), []);
+    const neetTargetDate = useMemo(() => new Date("2027-05-02T14:00:00"), []);
 
     if (isBackgroundLoading || !username) {
         return <Skeleton className="h-full w-full bg-black/40" />;
@@ -48,9 +48,10 @@ export default function MobileHomePage() {
                     {/* Timers Stack */}
                     <div className="flex flex-col gap-3 mt-4">
                         <h3 className="text-sm font-semibold text-white/80 px-1">Upcoming Exams</h3>
-                        <ExamCountdown title="JEE Mains (Session 1)" targetDate={jeeTargetDate} displayDate="21-30 Jan 26" />
-                        <ExamCountdown title="JEE Mains (Session 2)" targetDate={jeeSession2TargetDate} displayDate="2-9 Apr 26" />
-                        <ExamCountdown title="NEET UG" targetDate={neetTargetDate} displayDate="3 May 26" />
+                        <ExamCountdown title="Re-NEET UG 2026" targetDate={reNeetTargetDate} displayDate="21 Jun 26" />
+                        <ExamCountdown title="JEE Mains 2027 (Session 1)" targetDate={jeeTargetDate} displayDate="24 Jan 27" />
+                        <ExamCountdown title="JEE Mains 2027 (Session 2)" targetDate={jeeSession2TargetDate} displayDate="5 Apr 27" />
+                        <ExamCountdown title="NEET UG 2027" targetDate={neetTargetDate} displayDate="2 May 27" />
                     </div>
                 </div>
             </div>

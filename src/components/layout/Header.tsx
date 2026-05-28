@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Sparkles, Bell, BookOpenCheck, BookOpen, Home, NotebookText, CheckCheck, Bug, Loader2, ShoppingBag, Brain, Pin, PinOff, Menu } from 'lucide-react';
+import { Sparkles, Bell, BookOpenCheck, BookOpen, Home, NotebookText, CheckCheck, Bug, Loader2, ShoppingBag, Brain, Pin, PinOff, Menu, Lock } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -258,14 +258,12 @@ export default function Header() {
                             <span>Study Room</span>
                         </Link>
                         
-                        <Link href="/resources" className={cn(
-                            "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
-                            'text-white/80 hover:text-white bg-black/20 backdrop-blur-sm',
-                            pathname.startsWith('/resources') && 'bg-white/10 text-white'
-                        )}>
-                            <BookOpen className="w-4 h-4" />
+                        <div className={cn(
+                            "flex items-center gap-2 py-1.5 px-3 rounded-full text-white/40 bg-black/10 cursor-not-allowed text-sm select-none"
+                        )} title="Locked for now">
+                            <Lock className="w-4 h-4" />
                             <span>Resources</span>
-                        </Link>
+                        </div>
 
                         <Link href="/journal" className={cn(
                             "flex items-center gap-2 py-1.5 px-3 rounded-full transition-colors text-sm",
@@ -326,14 +324,12 @@ export default function Header() {
                                         <Sparkles className="w-5 h-5" />
                                         Study Room
                                     </Link>
-                                    <Link href="/resources" className={cn(
-                                        "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",
-                                        'text-white/80 hover:text-white hover:bg-white/10',
-                                        pathname.startsWith('/resources') && 'bg-white/10 text-white font-medium'
-                                    )}>
-                                        <BookOpen className="w-5 h-5" />
+                                    <div className={cn(
+                                        "flex items-center gap-3 py-3 px-4 rounded-xl text-white/40 cursor-not-allowed text-base select-none"
+                                    )} title="Locked for now">
+                                        <Lock className="w-5 h-5" />
                                         Resources
-                                    </Link>
+                                    </div>
                                     <Link href="/journal" className={cn(
                                         "flex items-center gap-3 py-3 px-4 rounded-xl transition-colors text-base",
                                         'text-white/80 hover:text-white hover:bg-white/10',
