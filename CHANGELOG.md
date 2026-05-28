@@ -2,6 +2,33 @@
 
 All notable changes to Liorea will be documented in this file.
     
+## [1.2.0] - 2026-05-28
+
+### ✨ New Features
+- **Dedicated Mobile App**: Implemented a dedicated mobile experience with tailored routes (`/mobile`), custom layouts, and a dedicated bottom navigation bar.
+- **Resources Library**: Added hierarchical folder and module navigation, allowing users to browse subject-specific documents and view PDFs directly in the application.
+- **Practice & Quiz System**: Introduced comprehensive practice modules featuring session tracking, history tracking, Firestore curriculum synchronization, and performance optimization.
+- **Anti-Sleep Keep Alive**: Added a `useKeepAlive` hook integrating Wake Lock API to prevent the browser/device from sleeping during study sessions.
+- **Journal Optimistic UI**: Implemented nonce-based reconciliation for journal posts to provide instant message sending feedback.
+
+### 🎨 UI/UX Improvements
+- **Mobile Menu and Responsiveness**: Redesigned navigation sheets and optimized layout grids across all key components for seamless mobile access.
+- **Journal Chat Revamp**: Standardized post layout, spacing, typography, image display, scroll anchoring, and actions hover states.
+- **Improved Countdown Timers**: Updated the dashboard with clean, explicit timers for Re-NEET UG 2026, JEE Mains 2027 (Session 1), and NEET UG 2027.
+- **Timer Panel Scroll**: Added vertical overflow scroll support to the right-side timer panel to prevent layout overflow.
+- **Resources Lock State**: Temporarily locked the resources tab, replacing it with a premium lock screen and disabled menu state.
+
+### ⚡ Performance Improvements
+- **Practice Session Caching**: Configured next.config image caching and preloading for faster module loading.
+- **Scroll Anchoring**: Refactored journal chat context with Firestore pagination and scroll anchoring to maintain position during infinite scroll.
+
+### 🐛 Bug Fixes
+- **Timer Maintenance**: Removed outdated JEE Mains Session 2 countdown timers.
+- **Scrolling Behavior**: Resolved scroll jumping when new chat items and reactions occur.
+- **Mobile Warnings**: Refactored warning components out of global providers to prevent unnecessary mobile overlays.
+
+---
+
 ## [1.1.0] - 2026-01-04
 
 ### ✨ New Features
@@ -143,5 +170,7 @@ All notable changes to Liorea will be documented in this file.
 
 ## Version History
 
+- **v1.2.0** (2026-05-28) - Mobile app experience, resources library, and practice system
+- **v1.1.0** (2026-01-04) - Focus chamber overlay and real-time activity feed
 - **v1.0.0** (2025-12-25) - Official stable release
 - **v0.1.0** (Beta) - Initial development versions
